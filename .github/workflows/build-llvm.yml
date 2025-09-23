@@ -40,13 +40,20 @@ jobs:
       run: |
         # Get the latest release tag from LLVM GitHub repository
         LATEST_TAG=$(curl -s https://api.github.com/repos/llvm/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        if [ -z "$LATEST_TAG" ]; then
+          echo "Error: Could not fetch LLVM release tag"
+          exit 1
+        fi
         echo "Latest LLVM release: $LATEST_TAG"
         echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-        echo "version=${LATEST_TAG#llvmorg-}" >> $GITHUB_OUTPUT
+        # Extract version without llvmorg- prefix
+        VERSION=${LATEST_TAG#llvmorg-}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Extracted version: $VERSION"
 
     - name: Cache LLVM source
       id: cache-llvm-source
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: llvm-project
         key: llvm-source-${{ steps.llvm-version.outputs.tag }}
@@ -56,9 +63,19 @@ jobs:
       run: |
         echo "Downloading LLVM ${{ steps.llvm-version.outputs.tag }}"
         git clone --depth 1 --branch ${{ steps.llvm-version.outputs.tag }} https://github.com/llvm/llvm-project.git
+        if [ ! -d "llvm-project/llvm" ]; then
+          echo "Error: LLVM source download failed or directory structure is incorrect"
+          exit 1
+        fi
+        echo "LLVM source downloaded successfully"
 
     - name: Configure CMake for LLVM
       run: |
+        # Verify LLVM source directory exists
+        if [ ! -d "llvm-project/llvm" ]; then
+          echo "Error: LLVM source directory not found"
+          exit 1
+        fi
         mkdir -p llvm-project/build
         cd llvm-project/build
         cmake ../llvm \
@@ -108,7 +125,7 @@ jobs:
         tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}.tar.gz -C llvm-install .
 
     - name: Upload LLVM static build
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: llvm-static-${{ steps.llvm-version.outputs.version }}
         path: llvm-static-${{ steps.llvm-version.outputs.version }}.tar.gz
