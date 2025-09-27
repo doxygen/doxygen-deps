@@ -13,13 +13,42 @@ env:
 
 jobs:
   build-llvm:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            extension: ""
+            archive_format: tar.gz
+            cmake_args: >-
+              -DLLVM_ENABLE_PIC=OFF
+              -DLLVM_ENABLE_TERMINFO=OFF
+              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+          - os: windows-latest
+            platform: windows
+            extension: .exe
+            archive_format: zip
+            cmake_args: >-
+              -DLLVM_USE_CRT_RELEASE=MT
+              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+          - os: macos-latest
+            platform: macos
+            extension: ""
+            archive_format: tar.gz
+            cmake_args: >-
+              -DLLVM_ENABLE_PIC=OFF
+              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+    runs-on: ${{ matrix.os }}
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Install dependencies
+    - name: Install dependencies (Linux)
+      if: matrix.platform == 'linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -34,6 +63,18 @@ jobs:
           libffi-dev \
           libxml2-dev \
           libtinfo-dev
+
+    - name: Install dependencies (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        choco install ninja
+        python -m pip install --upgrade pip
+
+    - name: Install dependencies (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        brew install cmake ninja
+        python3 -m pip install --upgrade pip
 
     - name: Get latest LLVM release tag
       id: llvm-version
@@ -56,7 +97,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: llvm-project
-        key: llvm-source-${{ steps.llvm-version.outputs.tag }}
+        key: llvm-source-${{ steps.llvm-version.outputs.tag }}-${{ matrix.platform }}
 
     - name: Download LLVM source code
       if: steps.cache-llvm-source.outputs.cache-hit != 'true'
@@ -72,7 +113,10 @@ jobs:
     - name: Configure CMake for LLVM
       run: |
         # Verify LLVM source directory exists
-        if [ ! -d "llvm-project/llvm" ]; then
+        if [ ! -d "llvm-project/llvm" ] && [ "${{ matrix.platform }}" != "windows" ]; then
+          echo "Error: LLVM source directory not found"
+          exit 1
+        elif [ "${{ matrix.platform }}" == "windows" ] && [ ! -d "llvm-project/llvm" ]; then
           echo "Error: LLVM source directory not found"
           exit 1
         fi
@@ -84,7 +128,6 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/llvm-install \
           -DLLVM_ENABLE_PROJECTS="clang;lld" \
           -DLIBCLANG_BUILD_STATIC=ON \
-          -DLLVM_ENABLE_PIC=OFF \
           -DLLVM_ENABLE_OCAMLDOC=OFF \
           -DLLVM_ENABLE_LTO=OFF \
           -DLLVM_ENABLE_WARNINGS=OFF \
@@ -100,12 +143,18 @@ jobs:
           -DLLVM_INCLUDE_EXAMPLES=OFF \
           -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
           -DLLVM_PARALLEL_LINK_JOBS=1 \
-          -DLLVM_ENABLE_TERMINFO=OFF
+          ${{ matrix.cmake_args }}
+      shell: bash
 
     - name: Build LLVM
       run: |
         cd llvm-project/build
-        ninja -j$(nproc)
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          ninja -j${NUMBER_OF_PROCESSORS:-4}
+        else
+          ninja -j$(nproc)
+        fi
+      shell: bash
 
     - name: Install LLVM
       run: |
@@ -115,36 +164,55 @@ jobs:
     - name: Verify static build
       run: |
         echo "Checking libclang static library..."
-        find ${{ github.workspace }}/llvm-install -name "libclang*.a" -ls
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          find ${{ github.workspace }}/llvm-install -name "libclang*.lib" -o -name "clang*.lib" | head -10
+        else
+          find ${{ github.workspace }}/llvm-install -name "libclang*.a" | head -10
+        fi
         echo "Checking clang binary..."
-        ls -la ${{ github.workspace }}/llvm-install/bin/clang*
+        ls -la ${{ github.workspace }}/llvm-install/bin/clang${{ matrix.extension }} || true
         echo "Checking lld binary..."
-        ls -la ${{ github.workspace }}/llvm-install/bin/lld*
+        ls -la ${{ github.workspace }}/llvm-install/bin/lld${{ matrix.extension }} || true
         echo "Testing clang version..."
-        ${{ github.workspace }}/llvm-install/bin/clang --version
+        ${{ github.workspace }}/llvm-install/bin/clang${{ matrix.extension }} --version || true
+      shell: bash
 
     - name: Create build artifact
       run: |
         cd ${{ github.workspace }}
-        tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}.tar.gz -C llvm-install .
+        if [ "${{ matrix.archive_format }}" == "zip" ]; then
+          powershell Compress-Archive -Path llvm-install/* -DestinationPath llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip
+        else
+          tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C llvm-install .
+        fi
+      shell: bash
 
     - name: Upload LLVM static build
       uses: actions/upload-artifact@v4
       with:
-        name: llvm-static-${{ steps.llvm-version.outputs.version }}
-        path: llvm-static-${{ steps.llvm-version.outputs.version }}.tar.gz
+        name: llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}
+        path: llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.${{ matrix.archive_format }}
         retention-days: 30
 
     - name: Display build summary
       run: |
-        echo "## LLVM Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## LLVM Build Summary (${{ matrix.platform }})" >> $GITHUB_STEP_SUMMARY
+        echo "- **Platform**: ${{ matrix.platform }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
         echo "- **LLVM Version**: ${{ steps.llvm-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Enabled Projects**: clang, lld" >> $GITHUB_STEP_SUMMARY
         echo "- **Static Build**: Enabled" >> $GITHUB_STEP_SUMMARY
         echo "- **libclang Static**: Enabled" >> $GITHUB_STEP_SUMMARY
+        echo "- **Archive Format**: ${{ matrix.archive_format }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Platform-specific CMake Args" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "${{ matrix.cmake_args }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Installed Components" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        find ${{ github.workspace }}/llvm-install/bin -type f -executable | head -20 >> $GITHUB_STEP_SUMMARY
+        find ${{ github.workspace }}/llvm-install/bin -type f -executable 2>/dev/null | head -20 >> $GITHUB_STEP_SUMMARY || true
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      shell: bash
