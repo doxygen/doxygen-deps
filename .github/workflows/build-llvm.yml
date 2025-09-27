@@ -146,5 +146,5 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Installed Components" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        find ${{ github.workspace }}/llvm-install/bin -type f -executable | head -20 >> $GITHUB_STEP_SUMMARY
+        find ${{ github.workspace }}/llvm-install/lib -type f -name "libclang*.a" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
