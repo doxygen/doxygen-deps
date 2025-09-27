@@ -33,15 +33,14 @@ jobs:
               -DLLVM_USE_CRT_RELEASE=MT
               -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-              -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
-              -DVCPKG_TARGET_TRIPLET=x64-windows-static
+              -DLLVM_ENABLE_ZLIB=OFF
           - os: macos-latest
             platform: macos
             extension: ""
             archive_format: tar.gz
             cmake_args: >-
               -DLLVM_ENABLE_PIC=OFF
-              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+              -DLLVM_TARGETS_TO_BUILD=X86;AArch64
               -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
     runs-on: ${{ matrix.os }}
     
@@ -71,17 +70,6 @@ jobs:
       if: matrix.platform == 'windows'
       run: |
         choco install ninja
-        # Clean up any existing vcpkg and install fresh
-        if [ -d "C:/vcpkg" ]; then
-          echo "Removing existing vcpkg directory..."
-          rm -rf C:/vcpkg || powershell.exe -Command "Remove-Item -Path 'C:/vcpkg' -Recurse -Force -ErrorAction SilentlyContinue"
-        fi
-        echo "Cloning vcpkg..."
-        git clone --depth 1 https://github.com/Microsoft/vcpkg.git C:/vcpkg
-        echo "Bootstrapping vcpkg..."
-        cd C:/vcpkg && ./bootstrap-vcpkg.bat -disableMetrics
-        echo "Installing zlib..."
-        C:/vcpkg/vcpkg install zlib:x64-windows-static
       shell: bash
 
     - name: Install dependencies (macOS)
@@ -156,7 +144,6 @@ jobs:
           -DLLVM_ENABLE_LTO=OFF \
           -DLLVM_ENABLE_WARNINGS=OFF \
           -DLLVM_ENABLE_Z3_SOLVER=OFF \
-          -DLLVM_ENABLE_ZLIB=FORCE_ON \
           -DLLVM_ENABLE_ZSTD=OFF \
           -DLLVM_ENABLE_BINDING=OFF \
           -DLLVM_ENABLE_LIBXML2=OFF \
@@ -236,7 +223,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Platform-specific CMake Args" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "${{ matrix.cmake_args }}" >> $GITHUB_STEP_SUMMARY
+        echo '${{ matrix.cmake_args }}' >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Installed Components" >> $GITHUB_STEP_SUMMARY
