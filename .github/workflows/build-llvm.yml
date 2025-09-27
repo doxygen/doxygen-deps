@@ -63,18 +63,19 @@ jobs:
           libffi-dev \
           libxml2-dev \
           libtinfo-dev
+      shell: bash
 
     - name: Install dependencies (Windows)
       if: matrix.platform == 'windows'
       run: |
         choco install ninja
-        python -m pip install --upgrade pip
+      shell: bash
 
     - name: Install dependencies (macOS)
       if: matrix.platform == 'macos'
       run: |
         brew install cmake ninja
-        python3 -m pip install --upgrade pip
+      shell: bash
 
     - name: Get latest LLVM release tag
       id: llvm-version
@@ -91,6 +92,7 @@ jobs:
         VERSION=${LATEST_TAG#llvmorg-}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Extracted version: $VERSION"
+      shell: bash
 
     - name: Cache LLVM source
       id: cache-llvm-source
@@ -109,6 +111,7 @@ jobs:
           exit 1
         fi
         echo "LLVM source downloaded successfully"
+      shell: bash
 
     - name: Configure CMake for LLVM
       run: |
@@ -160,6 +163,7 @@ jobs:
       run: |
         cd llvm-project/build
         ninja install
+      shell: bash
 
     - name: Verify static build
       run: |
@@ -181,7 +185,8 @@ jobs:
       run: |
         cd ${{ github.workspace }}
         if [ "${{ matrix.archive_format }}" == "zip" ]; then
-          powershell Compress-Archive -Path llvm-install/* -DestinationPath llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip
+          # Use PowerShell for Windows zip creation
+          powershell.exe -Command "Compress-Archive -Path 'llvm-install\\*' -DestinationPath 'llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip' -Force"
         else
           tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C llvm-install .
         fi
