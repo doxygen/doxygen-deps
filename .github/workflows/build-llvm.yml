@@ -33,6 +33,8 @@ jobs:
               -DLLVM_USE_CRT_RELEASE=MT
               -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+              -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+              -DVCPKG_TARGET_TRIPLET=x64-windows-static
           - os: macos-latest
             platform: macos
             extension: ""
@@ -69,6 +71,10 @@ jobs:
       if: matrix.platform == 'windows'
       run: |
         choco install ninja
+        # Install vcpkg and zlib for LLVM dependencies
+        git clone https://github.com/Microsoft/vcpkg.git C:/vcpkg
+        C:/vcpkg/bootstrap-vcpkg.bat -disableMetrics
+        C:/vcpkg/vcpkg install zlib:x64-windows-static
       shell: bash
 
     - name: Install dependencies (macOS)
@@ -154,6 +160,8 @@ jobs:
         cd llvm-project/build
         if [ "${{ matrix.platform }}" == "windows" ]; then
           ninja -j${NUMBER_OF_PROCESSORS:-4}
+        elif [ "${{ matrix.platform }}" == "macos" ]; then
+          ninja -j$(sysctl -n hw.logicalcpu)
         else
           ninja -j$(nproc)
         fi
