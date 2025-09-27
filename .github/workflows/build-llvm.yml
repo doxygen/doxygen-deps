@@ -1,0 +1,150 @@
+name: Build LLVM Static
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  # Build type for CMake
+  BUILD_TYPE: Release
+
+jobs:
+  build-llvm:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          ninja-build \
+          git \
+          python3 \
+          python3-pip \
+          zlib1g-dev \
+          libedit-dev \
+          libffi-dev \
+          libxml2-dev \
+          libtinfo-dev
+
+    - name: Get latest LLVM release tag
+      id: llvm-version
+      run: |
+        # Get the latest release tag from LLVM GitHub repository
+        LATEST_TAG=$(curl -s https://api.github.com/repos/llvm/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        if [ -z "$LATEST_TAG" ]; then
+          echo "Error: Could not fetch LLVM release tag"
+          exit 1
+        fi
+        echo "Latest LLVM release: $LATEST_TAG"
+        echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        # Extract version without llvmorg- prefix
+        VERSION=${LATEST_TAG#llvmorg-}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Extracted version: $VERSION"
+
+    - name: Cache LLVM source
+      id: cache-llvm-source
+      uses: actions/cache@v4
+      with:
+        path: llvm-project
+        key: llvm-source-${{ steps.llvm-version.outputs.tag }}
+
+    - name: Download LLVM source code
+      if: steps.cache-llvm-source.outputs.cache-hit != 'true'
+      run: |
+        echo "Downloading LLVM ${{ steps.llvm-version.outputs.tag }}"
+        git clone --depth 1 --branch ${{ steps.llvm-version.outputs.tag }} https://github.com/llvm/llvm-project.git
+        if [ ! -d "llvm-project/llvm" ]; then
+          echo "Error: LLVM source download failed or directory structure is incorrect"
+          exit 1
+        fi
+        echo "LLVM source downloaded successfully"
+
+    - name: Configure CMake for LLVM
+      run: |
+        # Verify LLVM source directory exists
+        if [ ! -d "llvm-project/llvm" ]; then
+          echo "Error: LLVM source directory not found"
+          exit 1
+        fi
+        mkdir -p llvm-project/build
+        cd llvm-project/build
+        cmake ../llvm \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/llvm-install \
+          -DLLVM_ENABLE_PROJECTS="clang;lld" \
+          -DLIBCLANG_BUILD_STATIC=ON \
+          -DLLVM_ENABLE_PIC=OFF \
+          -DLLVM_ENABLE_OCAMLDOC=OFF \
+          -DLLVM_ENABLE_LTO=OFF \
+          -DLLVM_ENABLE_WARNINGS=OFF \
+          -DLLVM_ENABLE_Z3_SOLVER=OFF \
+          -DLLVM_ENABLE_ZLIB=FORCE_ON \
+          -DLLVM_ENABLE_ZSTD=OFF \
+          -DLLVM_ENABLE_BINDING=OFF \
+          -DLLVM_ENABLE_LIBXML2=OFF \
+          -DLLVM_ENABLE_LIBEDIT=OFF \
+          -DLLVM_ENABLE_ASSERTIONS=OFF \
+          -DLLVM_INCLUDE_BENCHMARKS=OFF \
+          -DLLVM_INCLUDE_TESTS=OFF \
+          -DLLVM_INCLUDE_EXAMPLES=OFF \
+          -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+          -DLLVM_PARALLEL_LINK_JOBS=1 \
+          -DLLVM_ENABLE_TERMINFO=OFF
+
+    - name: Build LLVM
+      run: |
+        cd llvm-project/build
+        ninja -j$(nproc)
+
+    - name: Install LLVM
+      run: |
+        cd llvm-project/build
+        ninja install
+
+    - name: Verify static build
+      run: |
+        echo "Checking libclang static library..."
+        find ${{ github.workspace }}/llvm-install -name "libclang*.a" -ls
+        echo "Checking clang binary..."
+        ls -la ${{ github.workspace }}/llvm-install/bin/clang*
+        echo "Checking lld binary..."
+        ls -la ${{ github.workspace }}/llvm-install/bin/lld*
+        echo "Testing clang version..."
+        ${{ github.workspace }}/llvm-install/bin/clang --version
+
+    - name: Create build artifact
+      run: |
+        cd ${{ github.workspace }}
+        tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}.tar.gz -C llvm-install .
+
+    - name: Upload LLVM static build
+      uses: actions/upload-artifact@v4
+      with:
+        name: llvm-static-${{ steps.llvm-version.outputs.version }}
+        path: llvm-static-${{ steps.llvm-version.outputs.version }}.tar.gz
+        retention-days: 30
+
+    - name: Display build summary
+      run: |
+        echo "## LLVM Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **LLVM Version**: ${{ steps.llvm-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Enabled Projects**: clang, lld" >> $GITHUB_STEP_SUMMARY
+        echo "- **Static Build**: Enabled" >> $GITHUB_STEP_SUMMARY
+        echo "- **libclang Static**: Enabled" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Installed Components" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        find ${{ github.workspace }}/llvm-install/bin -type f -executable | head -20 >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
