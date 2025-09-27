@@ -171,7 +171,9 @@ jobs:
       run: |
         echo "Checking libclang static library..."
         if [ "${{ matrix.platform }}" == "windows" ]; then
-          find ${{ github.workspace }}/llvm-install -name "libclang*.lib" -o -name "clang*.lib" | head -10
+          win_search_dir="${{ github.workspace }}/llvm-install"
+          win_search_dir="${search_dir//\\//}"
+          find $win_search_dir -name "libclang*.lib" -o -name "clang*.lib" | head -10
         else
           find ${{ github.workspace }}/llvm-install -name "libclang*.a" | head -10
         fi
