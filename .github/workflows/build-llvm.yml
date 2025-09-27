@@ -40,7 +40,7 @@ jobs:
             archive_format: tar.gz
             cmake_args: >-
               -DLLVM_ENABLE_PIC=OFF
-              -DLLVM_TARGETS_TO_BUILD=X86;AArch64
+              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
               -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
     runs-on: ${{ matrix.os }}
     
