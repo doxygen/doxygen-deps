@@ -113,10 +113,7 @@ jobs:
     - name: Configure CMake for LLVM
       run: |
         # Verify LLVM source directory exists
-        if [ ! -d "llvm-project/llvm" ] && [ "${{ matrix.platform }}" != "windows" ]; then
-          echo "Error: LLVM source directory not found"
-          exit 1
-        elif [ "${{ matrix.platform }}" == "windows" ] && [ ! -d "llvm-project/llvm" ]; then
+        if [ ! -d "llvm-project/llvm" ]; then
           echo "Error: LLVM source directory not found"
           exit 1
         fi
@@ -173,12 +170,6 @@ jobs:
         else
           find ${{ github.workspace }}/llvm-install -name "libclang*.a" | head -10
         fi
-        echo "Checking clang binary..."
-        ls -la ${{ github.workspace }}/llvm-install/bin/clang${{ matrix.extension }} || true
-        echo "Checking lld binary..."
-        ls -la ${{ github.workspace }}/llvm-install/bin/lld${{ matrix.extension }} || true
-        echo "Testing clang version..."
-        ${{ github.workspace }}/llvm-install/bin/clang${{ matrix.extension }} --version || true
       shell: bash
 
     - name: Create build artifact
