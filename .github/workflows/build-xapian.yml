@@ -121,6 +121,7 @@ jobs:
             --enable-static=yes \
             --enable-shared=no \
             --disable-documentation \
+            --disable-maintainer-mode \
             ${{ matrix.configure_args }}
         shell: bash
 
@@ -130,7 +131,7 @@ jobs:
           cd xapian
           INSTALL_PREFIX=$(echo '${{ github.workspace }}/xapian-install' | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
           XAPIAN_DIR=$(pwd -W | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
-          C:\tools\msys64\usr\bin\bash -lc "cd $XAPIAN_DIR && ./configure --prefix=$INSTALL_PREFIX --enable-static=yes --enable-shared=no --disable-documentation ${{ matrix.configure_args }}"
+          C:\tools\msys64\usr\bin\bash -lc "cd $XAPIAN_DIR && ./configure --prefix=$INSTALL_PREFIX --enable-static=yes --enable-shared=no --disable-documentation --disable-maintainer-mode ${{ matrix.configure_args }}"
         shell: bash
 
       - name: Build Xapian (Linux/macOS)
