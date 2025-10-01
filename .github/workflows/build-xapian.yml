@@ -67,7 +67,8 @@ jobs:
         id: xapian-version
         run: |
           # Get the latest release tag from Xapian GitHub repository
-          LATEST_TAG=$(curl https://api.github.com/repos/xapian/xapian/tags | jq -r '.[0].name')
+          curl -s https://api.github.com/repos/xapian/xapian/tags
+          LATEST_TAG=$(curl -s https://api.github.com/repos/xapian/xapian/tags | jq -r '.[0].name')
           if [ -z "$LATEST_TAG" ]; then
              echo "Error: Could not fetch Xapian release tag"
              exit 1
