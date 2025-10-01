@@ -51,6 +51,7 @@ jobs:
         run: |
           # Install MSYS2 for building
           choco install msys2 -y
+          choco install pacman
           # Update MSYS2 and install required packages
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain autoconf automake libtool libmagic jq
