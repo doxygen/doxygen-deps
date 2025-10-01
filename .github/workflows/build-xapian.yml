@@ -139,31 +139,32 @@ jobs:
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
         run: |
-          cd xapian
+          cd xapian/xapian-core
+          ./configure
           make
         shell: bash
 
       - name: Build Xapian (Windows)
         if: matrix.platform == 'windows'
         run: |
-          cd xapian
-          XAPIAN_DIR=$(pwd -W | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
-          C:\tools\msys64\usr\bin\bash -lc "cd $XAPIAN_DIR && make -j${NUMBER_OF_PROCESSORS:-4}"
+          cd xapian/xapian-core
+          ./configure
+          make
         shell: bash
 
       - name: Install Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
         run: |
-          cd xapian
+          cd xapian/xapian-core
+          ./configure
           make install
         shell: bash
 
       - name: Install Xapian (Windows)
         if: matrix.platform == 'windows'
         run: |
-          cd xapian
-          XAPIAN_DIR=$(pwd -W | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
-          C:\tools\msys64\usr\bin\bash -lc "cd $XAPIAN_DIR && make install"
+          cd xapian/xapian-core
+          make install
         shell: bash
 
       - name: Verify static build
