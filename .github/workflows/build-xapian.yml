@@ -36,6 +36,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            libmagic-dev \
             build-essential \
             autoconf \
             automake \
@@ -52,13 +53,13 @@ jobs:
           choco install msys2 -y
           # Update MSYS2 and install required packages
           C:\tools\msys64\usr\bin\bash -lc "pacman -Syu --noconfirm"
-          C:\tools\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain autoconf automake libtool"
+          C:\tools\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain autoconf automake libtool libmagic jq"
         shell: bash
 
       - name: Install dependencies (macOS)
         if: matrix.platform == 'macos'
         run: |
-          brew install autoconf automake libtool
+          brew install autoconf automake libtool libmagic-dev jq
         shell: bash
 
       - name: Get latest Xapian stable release tag
