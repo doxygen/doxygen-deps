@@ -52,8 +52,8 @@ jobs:
           # Install MSYS2 for building
           choco install msys2 -y
           # Update MSYS2 and install required packages
-          C:\tools\msys64\usr\bin\bash -lc "pacman -Syu --noconfirm"
-          C:\tools\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain autoconf automake libtool libmagic jq"
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain autoconf automake libtool libmagic jq
         shell: bash
 
       - name: Install dependencies (macOS)
@@ -138,11 +138,7 @@ jobs:
         if: matrix.platform != 'windows'
         run: |
           cd xapian
-          if [ "${{ matrix.platform }}" == "macos" ]; then
-            make -j$(sysctl -n hw.logicalcpu)
-          else
-            make -j$(nproc)
-          fi
+          make
         shell: bash
 
       - name: Build Xapian (Windows)
