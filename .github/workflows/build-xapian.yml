@@ -59,7 +59,7 @@ jobs:
       - name: Install dependencies (macOS)
         if: matrix.platform == 'macos'
         run: |
-          brew install autoconf automake libtool libmagic-dev jq
+          brew install autoconf automake libtool libmagic jq
         shell: bash
 
       - name: Get latest Xapian stable release tag
