@@ -109,17 +109,14 @@ jobs:
             ${{ matrix.configure_args }}
         shell: bash
 
-      - uses: ilammy/msvc-dev-cmd@v1
-      - name: Configure Xapian (Windows)
-        if: matrix.platform == 'windows'
+      - name: Configure Xapian (Window)
+        shell: msvc-dev-cmd
         run: |
-          VERSION="${{ steps.xapian-version.outputs.version }}"
-          cd xapian-core-$VERSION
-          INSTALL_PREFIX=$(echo '${{ github.workspace }}/xapian-install' | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
-          XAPIAN_DIR=$(pwd -W | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
-          ./configure CC="cl -nologo" CXX="$XAPIAN_DIR/compile cl -nologo" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix="$INSTALL_PREFIX" --enable-static=yes --enable-shared=no --disable-documentation ${{ matrix.configure_args }}
-        shell: msys2 {0}
-
+          "C:\msys64\usr\bin\bash.exe" -lc '
+            set -e
+            ./configure CC="cl -nologo" CXX="cl -nologo" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix="$PWD/xapian-install" --enable-static=yes --enable-shared=no --disable-documentation
+          '
+          
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
         run: |
