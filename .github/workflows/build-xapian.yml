@@ -66,17 +66,7 @@ jobs:
       - name: Get latest Xapian stable release tag
         id: xapian-version
         run: |
-          # Get the latest release tag from Xapian GitHub repository
-          curl -s https://api.github.com/repos/xapian/xapian/tags
-          LATEST_TAG=$(curl -s https://api.github.com/repos/xapian/xapian/tags | jq -r '.[0].name')
-          if [ -z "$LATEST_TAG" ]; then
-             echo "Error: Could not fetch Xapian release tag"
-             exit 1
-          fi
-          echo "Latest Xapian release: $LATEST_TAG"
-          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          # Extract version (remove 'v' prefix if present)
-          VERSION=${LATEST_TAG#v}
+          VERSION="1.4.29"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
         shell: bash
@@ -86,44 +76,28 @@ jobs:
         uses: actions/cache@v4
         with:
           path: xapian
-          key: xapian-source-${{ steps.xapian-version.outputs.tag }}-${{ matrix.platform }}
+          key: xapian-core-${{ steps.xapian-version.outputs.version }}.tar.xz
 
       - name: Download Xapian source code
         if: steps.cache-xapian-source.outputs.cache-hit != 'true'
         run: |
-          echo "Downloading Xapian ${{ steps.xapian-version.outputs.tag }}"
-          git clone --depth 1 --branch ${{ steps.xapian-version.outputs.tag }} https://github.com/xapian/xapian.git
-          if [ ! -d "xapian" ]; then
-            echo "Error: Xapian source download failed"
-            exit 1
-          fi
+          VERSION="${{ steps.xapian-version.outputs.version }}"
+          echo "Downloading Xapian $VERSION"
+          wget https://oligarchy.co.uk/xapian/$VERSION/xapian-core-$VERSION.tar.xz
+          tar jxf xapian-core-$VERSION.tar.xz
           echo "Xapian source downloaded successfully"
-        shell: bash
-
-      - name: Bootstrap Xapian (Linux/macOS)
-        if: matrix.platform != 'windows'
-        run: |
-          cd xapian
-          ./bootstrap
-        shell: bash
-
-      - name: Bootstrap Xapian (Windows)
-        if: matrix.platform == 'windows'
-        run: |
-          cd xapian
-          C:\tools\msys64\usr\bin\bash -lc "cd /$(pwd -W | sed 's|:|/|; s|\\|/|g') && ./bootstrap"
         shell: bash
 
       - name: Configure Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
         run: |
-          cd xapian
+          VERSION="${{ steps.xapian-version.outputs.version }}"
+          cd xapian-core-$VERSION
           ./configure \
             --prefix=${{ github.workspace }}/xapian-install \
             --enable-static=yes \
             --enable-shared=no \
             --disable-documentation \
-            --disable-maintainer-mode \
             ${{ matrix.configure_args }}
         shell: bash
 
@@ -139,8 +113,8 @@ jobs:
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
         run: |
-          cd xapian/xapian-core
-          ./configure
+          VERSION="${{ steps.xapian-version.outputs.version }}"
+          cd xapian-core-$VERSION
           make
         shell: bash
 
@@ -155,8 +129,8 @@ jobs:
       - name: Install Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
         run: |
-          cd xapian/xapian-core
-          ./configure
+          VERSION="${{ steps.xapian-version.outputs.version }}"
+          cd xapian-core-$VERSION
           make install
         shell: bash
 
