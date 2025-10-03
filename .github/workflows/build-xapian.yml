@@ -53,10 +53,21 @@ jobs:
           choco install msys2 -y
           choco install pacman -y
           choco install wget -y
-          # Update MSYS2 and install required packages
-          pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain autoconf automake libtool libmagic jq wget
         shell: bash
+
+      - uses: msys2/setup-msys2@v2
+        if: matrix.platform == 'windows'
+        with:
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-x86_64-toolchain
+            autoconf
+            automake
+            libtool
+            libmagic
+            jq
+            wget
 
       - name: Install dependencies (macOS)
         if: matrix.platform == 'macos'
