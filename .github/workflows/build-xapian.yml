@@ -108,8 +108,13 @@ jobs:
             --disable-documentation \
             ${{ matrix.configure_args }}
         shell: bash
-
+        
+      - name: Set up MSVC dev command prompt (Windows)
+        if: matrix.platform == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+      
       - name: Configure Xapian (Window)
+        if: matrix.platform == 'windows'
         shell: msvc-dev-cmd
         run: |
           "C:\msys64\usr\bin\bash.exe" -lc '
