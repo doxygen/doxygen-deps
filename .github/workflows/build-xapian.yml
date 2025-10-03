@@ -60,7 +60,7 @@ jobs:
       - name: Install dependencies (macOS)
         if: matrix.platform == 'macos'
         run: |
-          brew install autoconf automake libtool libmagic jq
+          brew install autoconf automake libtool libmagic
         shell: bash
 
       - name: Get latest Xapian stable release tag
@@ -84,7 +84,7 @@ jobs:
           VERSION="${{ steps.xapian-version.outputs.version }}"
           echo "Downloading Xapian $VERSION"
           wget https://oligarchy.co.uk/xapian/$VERSION/xapian-core-$VERSION.tar.xz
-          tar jxf xapian-core-$VERSION.tar.xz
+          tar -Jxf xapian-core-$VERSION.tar.xz
           echo "Xapian source downloaded successfully"
         shell: bash
 
