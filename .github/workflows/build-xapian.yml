@@ -110,9 +110,8 @@ jobs:
           cd xapian-core-$VERSION
           INSTALL_PREFIX=$(echo '${{ github.workspace }}/xapian-install' | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
           XAPIAN_DIR=$(pwd -W | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
-          start msys2_shell.cmd -use-full-path
           ./configure CC="cl -nologo" CXX="$XAPIAN_DIR/compile cl -nologo" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix="$INSTALL_PREFIX" --enable-static=yes --enable-shared=no --disable-documentation ${{ matrix.configure_args }}
-        shell: bash
+        shell: msys2 {0}
 
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
