@@ -54,7 +54,7 @@ jobs:
           choco install pacman
           # Update MSYS2 and install required packages
           pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain autoconf automake libtool libmagic jq
+          pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain autoconf automake libtool libmagic jq wget
         shell: bash
 
       - name: Install dependencies (macOS)
@@ -102,12 +102,15 @@ jobs:
         shell: bash
 
       - name: Configure Xapian (Windows)
+        uses: ilammy/msvc-dev-cmd@v1
         if: matrix.platform == 'windows'
         run: |
-          cd xapian
+          VERSION="${{ steps.xapian-version.outputs.version }}"
+          cd xapian-core-$VERSION
           INSTALL_PREFIX=$(echo '${{ github.workspace }}/xapian-install' | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
           XAPIAN_DIR=$(pwd -W | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
-          C:\tools\msys64\usr\bin\bash -lc "cd $XAPIAN_DIR && ./configure --prefix=$INSTALL_PREFIX --enable-static=yes --enable-shared=no --disable-documentation --disable-maintainer-mode ${{ matrix.configure_args }}"
+          start msys2_shell.cmd -use-full-path
+          ./configure CC=\"cl -nologo\" CXX=\"$PWD/compile cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$INSTALL_PREFIX --enable-static=yes --enable-shared=no --disable-documentation ${{ matrix.configure_args }}"
         shell: bash
 
       - name: Build Xapian (Linux/macOS)
