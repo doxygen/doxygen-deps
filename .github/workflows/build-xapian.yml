@@ -121,7 +121,7 @@ jobs:
           cd xapian-core-%VERSION%
           set XAPIAN_DIR=%cd%
           @rem "C:\msys64\usr\bin\bash.exe" -lc "echo $pwd ; echo $VERSION ; CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$PWD/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
-          "C:\msys64\usr\bin\bash.exe" -c "export xapian_path=$(cygpath \"$XAPIAN_DIR\"); cd $xapian_path ; echo \"$XAPIAN_PATH=$pwd\""
+          "C:\msys64\usr\bin\bash.exe" -c "export xapian_path=$(cygpath \"$XAPIAN_DIR\"); cd $xapian_path ; echo \"$xapian_path=$PWD\"; ./configure CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$(cygpath ${{ github.workspace }})/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
           
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
