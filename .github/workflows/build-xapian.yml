@@ -13,18 +13,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux
-            archive_format: tar.gz
-            configure_args: ""
+          #- os: ubuntu-latest
+          #  platform: linux
+          #  archive_format: tar.gz
+          #  configure_args: ""
           - os: windows-latest
             platform: windows
             archive_format: zip
             configure_args: ""
-          - os: macos-latest
-            platform: macos
-            archive_format: tar.gz
-            configure_args: ""
+          #- os: macos-latest
+          #  platform: macos
+          #  archive_format: tar.gz
+          #  configure_args: ""
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -115,7 +115,6 @@ jobs:
       
       - name: Configure Xapian (Window)
         if: matrix.platform == 'windows'
-        shell: msvc-dev-cmd
         run: |
           "C:\msys64\usr\bin\bash.exe" -lc '
             set -e
