@@ -119,7 +119,9 @@ jobs:
         run: |
           @echo on
           set VERSION=${{ steps.xapian-version.outputs.version }}
-          cd xapian-core-%VERSION%          
+          cd xapian-core-%VERSION%   
+          dir c:\
+          dir c:\msys64\
           C:\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -here -use-full-path -c "echo \"path=$PWD\""
           @rem set XAPIAN_DIR=%cd%
           @rem "C:\msys64\usr\bin\bash.exe" -lc "echo $pwd ; echo $VERSION ; CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$PWD/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
