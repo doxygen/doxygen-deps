@@ -113,14 +113,11 @@ jobs:
         if: matrix.platform == 'windows'
         uses: ilammy/msvc-dev-cmd@v1
       
-      - name: Configure Xapian (Window)
+      - name: Configure and build Xapian (MSYS2 + MSVC)
         if: matrix.platform == 'windows'
         shell: cmd
         run: |
-          "C:\msys64\usr\bin\bash.exe" -lc '
-            set -e
-            ./configure CC="cl -nologo" CXX="cl -nologo" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix="$PWD/xapian-install" --enable-static=yes --enable-shared=no --disable-documentation
-          '
+          "C:\msys64\usr\bin\bash.exe" -lc "set -e; autoreconf -if; ./configure CC='cl -nologo' CXX='cl -nologo' CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix='$PWD/xapian-install' --enable-static=yes --enable-shared=no --disable-documentation; make -j\$(nproc); make install"
           
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
