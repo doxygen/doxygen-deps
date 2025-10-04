@@ -118,9 +118,8 @@ jobs:
         shell: cmd
         run: |
           set VERSION=${{ steps.xapian-version.outputs.version }}
-          cd xapian-core-%VERSION%
-          set XAPIAN_DIR=%CD%
-          "C:\msys64\usr\bin\bash.exe" -lc "cd /$(XAPIAN_DIR -W | sed 's|:|/|; s|\\|/|g') && ./configure CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$PWD/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
+          cd xapian-core-%VERSION%          
+          "C:\msys64\usr\bin\bash.exe" -lc "echo $pwd ; echo $VERSION ; CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$PWD/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
           
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
