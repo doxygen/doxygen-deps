@@ -115,6 +115,7 @@ jobs:
       
       - name: Configure Xapian (Window)
         if: matrix.platform == 'windows'
+        shell: cmd
         run: |
           "C:\msys64\usr\bin\bash.exe" -lc '
             set -e
