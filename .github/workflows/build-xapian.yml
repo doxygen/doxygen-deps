@@ -67,7 +67,7 @@ jobs:
         shell: cmd
         run: |
           cd zlib-1.3.1
-          nmake -f win32\Makefile.msc LOC="-MT" zlibstatic
+          nmake -f win32\Makefile.msc LOC="-MT" zlib.lib
 
       - name: Install MSYS2 (Windows)
         uses: msys2/setup-msys2@v2
