@@ -123,7 +123,7 @@ jobs:
       #  if: matrix.platform == 'windows'
       #  run: echo "MSYS2_PATH_TYPE=inherit" >> $GITHUB_ENV
 
-     - name: Write configure script (Windows)
+      - name: Write configure script (Windows)
         if: matrix.platform == 'windows'
         run: |
           set VERSION=${{ steps.xapian-version.outputs.version }}
