@@ -126,7 +126,7 @@ jobs:
       - name: Write configure script (Windows)
         if: matrix.platform == 'windows'
         run: |
-          set VERSION=${{ steps.xapian-version.outputs.version }}
+          VERSION="${{ steps.xapian-version.outputs.version }}"
           cd xapian-core-$VERSION
           cat << 'EOF' > run_me.sh
           ./configure --help
