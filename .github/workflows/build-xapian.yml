@@ -149,6 +149,8 @@ jobs:
           export AR="lib"
           export LD="link"
           export NM="dumpbin"
+          export CPPFLAGS="-I../zlib-1.3.1"
+          export LDFLAGS="-I../zlib-1.3.1"
           ./configure --enable-static=yes --enable-shared=no
           #./configure CC='cl -nologo' CXX='./compile cl -nologo' CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --disable-documentation --enable-static=yes --enable-shared=no
           EOF
