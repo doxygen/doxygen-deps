@@ -52,6 +52,23 @@ jobs:
           choco install wget -y
         shell: bash
 
+      - name: Set up MSVC dev command prompt (Windows)
+        if: matrix.platform == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Download zlib (Windows)
+        if: matrix.platform == 'windows'
+        run: |
+          curl -L -o zlib.zip https://zlib.net/zlib1213.zip
+          7z x zlib.zip -ozlibdir
+
+      - name: Build zlib (Windows)
+        if: matrix.platform == 'windows'
+        shell: cmd
+        run: |
+          cd zlibdir\zlib-1.2.13
+          nmake -f win32\Makefile.msc LOC="-MT" zlib
+
       - name: Install MSYS2 (Windows)
         uses: msys2/setup-msys2@v2
         if: matrix.platform == 'windows'
@@ -109,10 +126,6 @@ jobs:
             ${{ matrix.configure_args }}
         shell: bash
         
-      - name: Set up MSVC dev command prompt (Windows)
-        if: matrix.platform == 'windows'
-        uses: ilammy/msvc-dev-cmd@v1
-
       #- name: Set MSYS2_PATH_TYPE in registry for current user
       #  if: matrix.platform == 'windows'
       #  shell: pwsh
