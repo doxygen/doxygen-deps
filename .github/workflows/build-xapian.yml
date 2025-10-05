@@ -130,14 +130,13 @@ jobs:
           @echo on
           set VERSION=${{ steps.xapian-version.outputs.version }}
           cd xapian-core-%VERSION%   
-          dir c:\
-          dir c:\msys64\
+          echo ./configure CC='cl -nologo' CXX='./compile cl -nologo' CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --disable-documentation --enable-static=yes --enable-shared=no > run_me.sh
           @rem start C:\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -here -use-full-path -c "echo \"path=$PWD\""
           @rem set XAPIAN_DIR=%cd%
           @rem "C:\msys64\usr\bin\bash.exe" -lc "echo $pwd ; echo $VERSION ; CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$PWD/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
           @rem "C:\msys64\usr\bin\bash.exe" -c "export xapian_path=$(cygpath \"$XAPIAN_DIR\"); cd $xapian_path ; echo \"root=$PWD\"; echo ./configure CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$(cygpath \"${{ github.workspace }}\")/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
           set MSYS2_PATH_TYPE=inherit
-          C:\msys64\usr\bin\bash -c "ls ; ./configure CC='cl -nologo' CXX='./compile cl -nologo' CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --disable-documentation --enable-static=yes --enable-shared=no"
+          C:\msys64\usr\bin\bash -c "chmod 755 ./run_me.sh && ./run_me.sh"
           
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
