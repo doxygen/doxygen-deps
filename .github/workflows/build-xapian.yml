@@ -128,10 +128,17 @@ jobs:
         run: |
           VERSION="${{ steps.xapian-version.outputs.version }}"
           cd xapian-core-$VERSION
-          cat << 'EOF' > run_me.sh
+          cat <<- 'EOF' > run_me.sh
           ./configure --help
-          ./configure CC='cl -nologo' CXX='./compile cl -nologo' CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --disable-documentation --enable-static=yes --enable-shared=no
-          EOF   
+          export CC="cl -nologo"
+          export CXX="./compile cl -nologo"
+          export CXXFLAGS="-EHsc"
+          export AR="lib"
+          export LD="link"
+          export NM="dumpbin"
+          ./configure --disable-documentation --enable-static=yes --enable-shared=no
+          #./configure CC='cl -nologo' CXX='./compile cl -nologo' CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --disable-documentation --enable-static=yes --enable-shared=no
+          EOF
           chmod 755 run_me.sh
         shell: bash
       
