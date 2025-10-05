@@ -136,9 +136,7 @@ jobs:
           export AR="lib"
           export LD="link"
           export NM="dumpbin"
-          pacman -S grep
-          ./configure 
-          #--enable-static=yes --enable-shared=no
+          ./configure --enable-static=yes --enable-shared=no
           #./configure CC='cl -nologo' CXX='./compile cl -nologo' CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --disable-documentation --enable-static=yes --enable-shared=no
           EOF
           chmod 755 run_me.sh
