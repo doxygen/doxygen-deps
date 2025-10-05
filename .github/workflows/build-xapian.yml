@@ -122,7 +122,7 @@ jobs:
           cd xapian-core-%VERSION%   
           dir c:\
           dir c:\msys64\
-          C:\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -here -use-full-path -c "echo \"path=$PWD\""
+          start C:\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -here -use-full-path -c "echo \"path=$PWD\""
           @rem set XAPIAN_DIR=%cd%
           @rem "C:\msys64\usr\bin\bash.exe" -lc "echo $pwd ; echo $VERSION ; CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$PWD/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
           @rem "C:\msys64\usr\bin\bash.exe" -c "export xapian_path=$(cygpath \"$XAPIAN_DIR\"); cd $xapian_path ; echo \"root=$PWD\"; echo ./configure CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$(cygpath \"${{ github.workspace }}\")/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
