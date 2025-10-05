@@ -154,8 +154,9 @@ jobs:
           @echo on
           set VERSION=${{ steps.xapian-version.outputs.version }}
           cd xapian-core-%VERSION%   
+          set PATH=C:\msys64\usr\bin;%PATH%
           set MSYS2_PATH_TYPE=inherit
-          C:\msys64\usr\bin\bash -c "./run_me.sh"
+          bash -c "./run_me.sh"
           
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
