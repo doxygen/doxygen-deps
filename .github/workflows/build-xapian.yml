@@ -113,15 +113,15 @@ jobs:
         if: matrix.platform == 'windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Set MSYS2_PATH_TYPE in registry for current user
-        if: matrix.platform == 'windows'
-        shell: pwsh
-        run: |
-          Set-ItemProperty -Path "HKCU:\Environment" -Name "MSYS2_PATH_TYPE" -Value "inherit"
+      #- name: Set MSYS2_PATH_TYPE in registry for current user
+      #  if: matrix.platform == 'windows'
+      #  shell: pwsh
+      #  run: |
+      #    Set-ItemProperty -Path "HKCU:\Environment" -Name "MSYS2_PATH_TYPE" -Value "inherit"
 
-      - name: Set MSYS2_PATH_TYPE for the workflow (immediate use)
-        if: matrix.platform == 'windows'
-        run: echo "MSYS2_PATH_TYPE=inherit" >> $GITHUB_ENV
+      #- name: Set MSYS2_PATH_TYPE for the workflow (immediate use)
+      #  if: matrix.platform == 'windows'
+      #  run: echo "MSYS2_PATH_TYPE=inherit" >> $GITHUB_ENV
       
       - name: Configure and build Xapian (MSYS2 + MSVC)
         if: matrix.platform == 'windows'
@@ -137,7 +137,7 @@ jobs:
           @rem "C:\msys64\usr\bin\bash.exe" -lc "echo $pwd ; echo $VERSION ; CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$PWD/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
           @rem "C:\msys64\usr\bin\bash.exe" -c "export xapian_path=$(cygpath \"$XAPIAN_DIR\"); cd $xapian_path ; echo \"root=$PWD\"; echo ./configure CC=\"cl -nologo\" CXX=\"cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --prefix=$(cygpath \"${{ github.workspace }}\")/xapian-install --enable-static=yes --enable-shared=no --disable-documentation"
           set MSYS2_PATH_TYPE=inherit
-          C:\msys64\usr\bin\bash -c "./configure CC=\"cl -nologo\" CXX=\"$PWD/compile cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --disable-documentation --enable-static=yes --enable-shared=no"
+          C:\msys64\usr\bin\bash -c "ls ; echo ./configure CC=\"cl -nologo\" CXX=\"$PWD/compile cl -nologo\" CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --disable-documentation --enable-static=yes --enable-shared=no"
           
       - name: Build Xapian (Linux/macOS)
         if: matrix.platform != 'windows'
