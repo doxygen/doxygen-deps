@@ -59,7 +59,7 @@ jobs:
       - name: Download zlib (Windows)
         if: matrix.platform == 'windows'
         run: |
-          curl -L -o zlib.tgz https://zlib.net/current/zlib.tar.gz
+          curl -L -o zlib.tgz https://zlib.net/zlib-1.3.1.tar.gz
           tar zxvf zlib.tgz
 
       - name: Build zlib (Windows)
@@ -67,7 +67,7 @@ jobs:
         shell: cmd
         run: |
           cd zlib-1.3.1
-          nmake -f win32\Makefile.msc LOC="-MT" zlib
+          nmake -f win32\Makefile.msc LOC="-MT" zlibstatic
 
       - name: Install MSYS2 (Windows)
         uses: msys2/setup-msys2@v2
