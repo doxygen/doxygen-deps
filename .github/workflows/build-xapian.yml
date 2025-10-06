@@ -127,23 +127,12 @@ jobs:
             ${{ matrix.configure_args }}
         shell: bash
         
-      #- name: Set MSYS2_PATH_TYPE in registry for current user
-      #  if: matrix.platform == 'windows'
-      #  shell: pwsh
-      #  run: |
-      #    Set-ItemProperty -Path "HKCU:\Environment" -Name "MSYS2_PATH_TYPE" -Value "inherit"
-
-      #- name: Set MSYS2_PATH_TYPE for the workflow (immediate use)
-      #  if: matrix.platform == 'windows'
-      #  run: echo "MSYS2_PATH_TYPE=inherit" >> $GITHUB_ENV
-
       - name: Write configure script (Windows)
         if: matrix.platform == 'windows'
         run: |
           VERSION="${{ steps.xapian-version.outputs.version }}"
           cd xapian-core-$VERSION
           cat <<- 'EOF' > run_me.sh
-          #./configure --help
           export CC="cl -nologo"
           export CXX="./compile cl -nologo"
           export CXXFLAGS="-EHsc"
@@ -153,7 +142,7 @@ jobs:
           export CPPFLAGS="-I../zlib-1.3.1"
           export LDFLAGS="-I../zlib-1.3.1"
           ./configure --enable-static=yes --enable-shared=no
-          #./configure CC='cl -nologo' CXX='./compile cl -nologo' CXXFLAGS=-EHsc AR=lib LD=link NM=dumpbin --disable-documentation --enable-static=yes --enable-shared=no
+          make
           EOF
           chmod 755 run_me.sh
           echo "===="
@@ -161,7 +150,7 @@ jobs:
           echo "===="
         shell: bash
       
-      - name: Configure Xapian (Windows)
+      - name: Configure and Build Xapian (Windows)
         if: matrix.platform == 'windows'
         shell: cmd
         run: |
@@ -178,14 +167,6 @@ jobs:
         run: |
           VERSION="${{ steps.xapian-version.outputs.version }}"
           cd xapian-core-$VERSION
-          make
-        shell: bash
-
-      - name: Build Xapian (Windows)
-        if: matrix.platform == 'windows'
-        run: |
-          set VERSION=${{ steps.xapian-version.outputs.version }}
-          cd xapian/xapian-core-%VERSION%
           make
         shell: bash
 
