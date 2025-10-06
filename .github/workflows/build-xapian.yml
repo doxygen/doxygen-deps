@@ -141,7 +141,9 @@ jobs:
           export NM="dumpbin"
           export CPPFLAGS="-I../zlib-1.3.1"
           export LDFLAGS="-I../zlib-1.3.1"
-          ./configure --enable-static=yes --enable-shared=no --prefix=$PREFIX
+          export PREFIX_UNIX="$(cygpath $PREFIX)"
+          echo "prefix=$PREFIX_UNIX"
+          ./configure --enable-static=yes --enable-shared=no --prefix=$PREFIX_UNIX
           make
           make install
           EOF
