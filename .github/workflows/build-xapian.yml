@@ -188,7 +188,7 @@ jobs:
           if [ "${{ matrix.platform }}" == "windows" ]; then
             export WS="$(cygpath ${{ github.workspace }})"
             export PATH="$(cygpath "C:\msys64\usr\bin"):$PATH"
-            find.exe $WS/xapian-install -name "*.lib" | head -10
+            /usr/bin/find $WS/xapian-install -name "*.lib" | /usr/bin/head -10
           else
             find ${{ github.workspace }}/xapian-install -name "*.a" | head -10
           fi
