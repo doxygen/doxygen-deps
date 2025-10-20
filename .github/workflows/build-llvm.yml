@@ -172,17 +172,19 @@ jobs:
         fi
       shell: bash
 
-    - name: Create build artifact
+    - name: Create build artifact (Linux/macOS)
+      if: matrix.platform != 'windows'
       run: |
         cd ${{ github.workspace }}
-        if [ "${{ matrix.archive_format }}" == "zip" ]; then
-          # Use PowerShell for Windows zip creation
-          powershell.exe -Command "Compress-Archive -Path 'llvm-install\\*' -DestinationPath 'llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip' -Force"
-        else
-          tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C llvm-install .
-        fi
+        tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C llvm-install .
       shell: bash
-
+      
+    - name: Create build artifact (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        Compress-Archive -Path 'llvm-install\\*' -DestinationPath 'llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip' -Force
+      shell: pwsh
+      
     - name: Upload LLVM static build
       uses: actions/upload-artifact@v4
       with:
