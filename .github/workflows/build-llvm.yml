@@ -78,9 +78,7 @@ jobs:
       id: llvm-version
       run: |
         # Get the latest release tag from LLVM GitHub repository with retry logic
-        CURL_RESULT=$(curl -s https://api.github.com/repos/llvm/llvm-project/releases/latest)
-        echo "curl=$CURL_RESULT"
-        LATEST_TAG=$(CURL_RESULT | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        LATEST_TAG=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/llvm/llvm-project/releases/latest" | jq -r '.tag_name // empty')
         echo "latest_tag=$LATEST_TAG"
         if [ -z "$LATEST_TAG" ]; then
            echo "Error: Could not fetch LLVM release tag"
