@@ -196,12 +196,7 @@ jobs:
         if: matrix.platform != 'windows'
         run: |
           cd ${{ github.workspace }}
-          if [ "${{ matrix.archive_format }}" == "zip" ]; then
-            # Use PowerShell for Windows zip creation
-            powershell.exe -Command "Compress-Archive -Path 'xapian-install\\*' -DestinationPath 'xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.zip' -Force"
-          else
-            tar -czf xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C xapian-install .
-          fi
+          tar -czf xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C xapian-install .
         shell: bash
 
       - name: Create build artifact (Windows)
