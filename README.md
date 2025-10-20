@@ -1,42 +1,15 @@
 # doxygen-deps
-Build doxygen dependencies
+The goal of the repository is to provide Github actions that allow to build the external dependencies 
+for Doxygen for all platforms supported and used for the official binary release.
 
-## Available Builds
+These dependencies are optional, so they are not shipped as part of Doxygen's repository.
 
-### LLVM Static Build
+The dependencies consist of (statically) build libraries of:
+- libxapian (part of Xapian)
+- libclang (part of LLVM)
+- Qt6 (only the `qtbase` and `qtsvg` modules are needed)
 
-This repository includes a GitHub Action that automatically builds LLVM with static linking across multiple platforms, specifically configured for Doxygen dependencies.
+Since there package are normally provided as shared libraries, the resulting doxygen binaries cannot easiliy be moved to a different system without recompilation.
+By using statically linked versions of the dependent libraries, this can be avoided.
 
-**Features:**
-- **Multi-Platform Support**: Builds on Linux, Windows, and macOS
-- Downloads latest LLVM release automatically
-- Builds with clang and lld projects enabled
-- Static libclang library (`LIBCLANG_BUILD_STATIC=ON`)
-- Platform-specific optimizations and configurations
-- Optimized for Doxygen integration
-
-**Usage:**
-- Manually trigger from GitHub Actions tab
-- Automatically runs on push/PR to main branch
-- Produces platform-specific downloadable artifacts (tar.gz for Linux/macOS, zip for Windows)
-
-For detailed information, see [LLVM_BUILD.md](LLVM_BUILD.md).
-
-### Xapian Static Build
-
-This repository includes a GitHub Action that builds the latest stable Xapian release with static linking across multiple platforms, specifically configured for Doxygen search functionality.
-
-**Features:**
-- **Multi-Platform Support**: Builds on Linux, Windows, and macOS
-- Downloads latest stable Xapian release automatically
-- Static library build (`--enable-static=yes --enable-shared=no`)
-- Manual trigger only (no automatic builds)
-- Platform-specific optimizations and configurations
-- Optimized for Doxygen integration
-
-**Usage:**
-- Manually trigger from GitHub Actions tab only
-- Does not run automatically on push/PR
-- Produces platform-specific downloadable artifacts (tar.gz for Linux/macOS, zip for Windows)
-
-For detailed information, see [XAPIAN_BUILD.md](XAPIAN_BUILD.md).
+These package are too big and slow to compile every time, so the idea is to trigger the Github action manually, and then use the produced artifacts.
