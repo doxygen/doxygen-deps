@@ -186,16 +186,14 @@ jobs:
         run: |
           echo "Checking Xapian static library..."
           if [ "${{ matrix.platform }}" == "windows" ]; then
-            #export WS="$(cygpath ${{ github.workspace }})"
-            #export PATH="$(cygpath "C:\msys64\usr\bin"):$PATH"
-            #/usr/bin/find $WS/xapian-install -name "*.lib" | /usr/bin/head -10
             find "$(cygpath "${{ github.workspace }}")/xapian-install" -name "*.lib" | head -10
           else
             find ${{ github.workspace }}/xapian-install -name "*.a" | head -10
           fi
         shell: bash
 
-      - name: Create build artifact
+      - name: Create build artifact (Linux/macOS)
+        if: matrix.platform != 'windows'
         run: |
           cd ${{ github.workspace }}
           if [ "${{ matrix.archive_format }}" == "zip" ]; then
@@ -205,6 +203,12 @@ jobs:
             tar -czf xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C xapian-install .
           fi
         shell: bash
+
+      - name: Create build artifact (Windows)
+        if: matrix.platform == 'windows'
+        run: |
+          Compress-Archive -Path 'xapian-install\\*' -DestinationPath 'xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.zip' -Force
+        shell: pwsh
 
       - name: Upload Xapian static build
         uses: actions/upload-artifact@v4
