@@ -13,14 +13,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux
-            extension: ""
-            archive_format: tar.gz
-            cmake_args: >-
-              -DLLVM_ENABLE_PIC=OFF
-              -DLLVM_ENABLE_TERMINFO=OFF
-              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+          #- os: ubuntu-latest
+          #  platform: linux
+          #  extension: ""
+          #  archive_format: tar.gz
+          #  cmake_args: >-
+          #    -DLLVM_ENABLE_PIC=OFF
+          #    -DLLVM_ENABLE_TERMINFO=OFF
+          #    -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
           - os: windows-latest
             platform: windows
             extension: .exe
@@ -30,14 +30,14 @@ jobs:
               -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DLLVM_ENABLE_ZLIB=OFF
-          - os: macos-latest
-            platform: macos
-            extension: ""
-            archive_format: tar.gz
-            cmake_args: >-
-              -DLLVM_ENABLE_PIC=OFF
-              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+          #- os: macos-latest
+          #  platform: macos
+          #  extension: ""
+          #  archive_format: tar.gz
+          #  cmake_args: >-
+          #    -DLLVM_ENABLE_PIC=OFF
+          #    -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+          #    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
     runs-on: ${{ matrix.os }}
     
     steps:
@@ -133,7 +133,17 @@ jobs:
       shell: bash
 
     - name: Configure CMake for LLVM
+      env:
+        WORKSPACE: ${{ github.workspace }}
       run: |
+        if command -v cygpath >/dev/null 2>&1; then
+          export WORKSPACE_UNIX=$(cygpath -u "$WORKSPACE")
+          echo "Converted with cygpath: $WORKSPACE_UNIX"
+        else
+          # fallback to simple replace
+          export WORKSPACE_UNIX=${WORKSPACE//\\//}
+          echo "cygpath not found; fallback: $WORKSPACE_UNIX"
+        fi      
         # Verify LLVM source directory exists
         if [ ! -d "llvm-project/llvm" ]; then
           echo "Error: LLVM source directory not found"
@@ -144,7 +154,7 @@ jobs:
         cmake ../llvm \
           -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/llvm-install \
+          -DCMAKE_INSTALL_PREFIX=$WORKSPACE_UNIX/llvm-install \
           -DLLVM_ENABLE_PROJECTS="clang;lld" \
           -DLIBCLANG_BUILD_STATIC=ON \
           -DLLVM_ENABLE_OCAMLDOC=OFF \
