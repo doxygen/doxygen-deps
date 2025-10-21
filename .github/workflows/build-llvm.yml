@@ -110,6 +110,7 @@ jobs:
         echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
         VERSION=${LATEST_TAG#llvmorg-}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+      shell: bash
       
 
     - name: Cache LLVM source
