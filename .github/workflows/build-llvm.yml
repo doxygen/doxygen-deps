@@ -13,23 +13,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          #- os: ubuntu-latest
-          #  platform: linux
-          #  extension: ""
-          #  archive_format: tar.gz
-          #  cmake_args: >-
-          #    -DLLVM_ENABLE_PIC=OFF
-          #    -DLLVM_ENABLE_TERMINFO=OFF
-          #    -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
-          #- os: windows-latest
-          #  platform: windows
-          #  extension: .exe
-          #  archive_format: zip
-          #  cmake_args: >-
-          #    -DLLVM_USE_CRT_RELEASE=MT
-          #    -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
-          #    -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-          #    -DLLVM_ENABLE_ZLIB=OFF
+          - os: ubuntu-latest
+            platform: linux
+            extension: ""
+            archive_format: tar.gz
+            cmake_args: >-
+              -DLLVM_ENABLE_PIC=OFF
+              -DLLVM_ENABLE_TERMINFO=OFF
+              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+          - os: windows-latest
+            platform: windows
+            extension: .exe
+            archive_format: zip
+            cmake_args: >-
+              -DLLVM_USE_CRT_RELEASE=MT
+              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+              -DLLVM_ENABLE_ZLIB=OFF
           - os: macos-latest
             platform: macos
             extension: ""
