@@ -3,6 +3,9 @@ name: Build Qt6 Static
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   # Build type for CMake
   BUILD_TYPE: Release
