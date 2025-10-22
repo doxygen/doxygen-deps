@@ -91,42 +91,13 @@ jobs:
         brew install cmake ninja
       shell: bash
 
-    - name: Get latest Qt6 release tag
+    - name: Set Qt6 version
       id: qt6-version
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        set -euo pipefail
-        echo "GITHUB_TOKEN present: ${GITHUB_TOKEN:+yes}"
-        # Retry loop with exponential backoff
-        attempts=5
-        sleep_for=2
-        for i in $(seq 1 $attempts); do
-          echo "Attempt $i..."
-          resp=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/qt/qt5/releases/latest" ) || true
-          http_code=$(echo "$resp" | jq -r '. | if has("message") then "error" else "ok" end')
-          tag=$(echo "$resp" | jq -r '.tag_name // empty')
-          if [ -n "$tag" ]; then
-            LATEST_TAG="$tag"
-            break
-          fi
-          echo "No tag found. API response (truncated):"
-          echo "$resp" | jq -C '.' | sed -n '1,200p'
-          echo "Sleeping $sleep_for seconds before retry..."
-          sleep $sleep_for
-          sleep_for=$((sleep_for * 2))
-        done
-
-        if [ -z "${LATEST_TAG:-}" ]; then
-          echo "Error: Could not fetch Qt6 release tag; last response:"
-          echo "$resp" | jq -C '.' || echo "$resp"
-          exit 1
-        fi
-
-        echo "Latest Qt6 release: $LATEST_TAG"
-        echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-        # Extract version (e.g., v6.8.1 -> 6.8.1)
-        VERSION=${LATEST_TAG#v}
+        # Using a fixed Qt6 LTS version for stability
+        # Update this version when a new Qt6 LTS is released
+        VERSION="6.8.1"
+        echo "Qt6 version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
       shell: bash
       
@@ -136,12 +107,12 @@ jobs:
       uses: actions/cache@v4
       with:
         path: qt6-source
-        key: qt6-source-${{ steps.qt6-version.outputs.tag }}-${{ matrix.platform }}
+        key: qt6-source-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}
 
     - name: Download Qt6 source code
       if: steps.cache-qt6-source.outputs.cache-hit != 'true'
       run: |
-        echo "Downloading Qt6 ${{ steps.qt6-version.outputs.tag }}"
+        echo "Downloading Qt6 ${{ steps.qt6-version.outputs.version }}"
         VERSION="${{ steps.qt6-version.outputs.version }}"
         MAJOR_MINOR=$(echo "$VERSION" | cut -d. -f1-2)
         

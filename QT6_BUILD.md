@@ -5,7 +5,7 @@ This GitHub Action automatically downloads the latest Qt6 release and builds it 
 ## Features
 
 - **Multi-Platform Support**: Builds on Linux (Ubuntu), Windows, and macOS
-- **Automatic Latest Version**: Fetches the latest Qt6 release automatically
+- **Fixed Qt6 Version**: Uses Qt6 6.8.1 (LTS) for stability and reproducibility
 - **Static Build**: Builds Qt6 with static linking (`BUILD_SHARED_LIBS=OFF`)
 - **Minimal Modules**: Only builds qtbase and qtsvg modules (as required by Doxygen)
 - **Optimized Build**: Release build with optimizations
@@ -136,6 +136,7 @@ After completion, each platform build provides a detailed summary including:
 
 To modify the build configuration, edit `.github/workflows/build-qt6.yml`:
 
+- **Update Qt6 version**: Change the `VERSION` in the "Set Qt6 version" step
 - **Add more modules**: Download additional Qt modules and add build steps
 - **Enable Qt features**: Modify Qt feature flags (e.g., `-DQT_FEATURE_network=ON`)
 - **Build type**: Change `BUILD_TYPE` environment variable
