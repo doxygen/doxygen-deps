@@ -1,0 +1,307 @@
+name: Build Qt6 Static
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Build type for CMake
+  BUILD_TYPE: Release
+
+jobs:
+  build-qt6:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            archive_format: tar.gz
+            cmake_args: >-
+              -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF
+              -DQT_BUILD_EXAMPLES=OFF
+              -DQT_BUILD_TESTS=OFF
+          - os: windows-latest
+            platform: windows
+            archive_format: zip
+            cmake_args: >-
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+              -DQT_BUILD_EXAMPLES=OFF
+              -DQT_BUILD_TESTS=OFF
+          - os: macos-latest
+            platform: macos
+            archive_format: tar.gz
+            cmake_args: >-
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+              -DQT_BUILD_EXAMPLES=OFF
+              -DQT_BUILD_TESTS=OFF
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies (Linux)
+      if: matrix.platform == 'linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          ninja-build \
+          git \
+          python3 \
+          libfontconfig1-dev \
+          libfreetype6-dev \
+          libx11-dev \
+          libx11-xcb-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libxi-dev \
+          libxrender-dev \
+          libxcb1-dev \
+          libxcb-cursor-dev \
+          libxcb-glx0-dev \
+          libxcb-keysyms1-dev \
+          libxcb-image0-dev \
+          libxcb-shm0-dev \
+          libxcb-icccm4-dev \
+          libxcb-sync-dev \
+          libxcb-xfixes0-dev \
+          libxcb-shape0-dev \
+          libxcb-randr0-dev \
+          libxcb-render-util0-dev \
+          libxcb-util-dev \
+          libxcb-xinerama0-dev \
+          libxcb-xkb-dev \
+          libxkbcommon-dev \
+          libxkbcommon-x11-dev \
+          libgl1-mesa-dev \
+          libglu1-mesa-dev
+      shell: bash
+
+    - name: Install dependencies (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        choco install ninja
+      shell: bash
+
+    - name: Install dependencies (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        brew install cmake ninja
+      shell: bash
+
+    - name: Set Qt6 version
+      id: qt6-version
+      run: |
+        # Using a fixed Qt6 LTS version for stability
+        # Update this version when a new Qt6 LTS is released
+        VERSION="6.8.1"
+        echo "Qt6 version: $VERSION"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+      shell: bash
+      
+
+    - name: Cache Qt6 source
+      id: cache-qt6-source
+      uses: actions/cache@v4
+      with:
+        path: qt6-source
+        key: qt6-source-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}
+
+    - name: Download Qt6 source code
+      if: steps.cache-qt6-source.outputs.cache-hit != 'true'
+      run: |
+        echo "Downloading Qt6 ${{ steps.qt6-version.outputs.version }}"
+        VERSION="${{ steps.qt6-version.outputs.version }}"
+        MAJOR_MINOR=$(echo "$VERSION" | cut -d. -f1-2)
+        
+        # Download qtbase
+        mkdir -p qt6-source
+        cd qt6-source
+        
+        echo "Downloading qtbase..."
+        curl -L -o qtbase.tar.xz "https://download.qt.io/official_releases/qt/$MAJOR_MINOR/$VERSION/submodules/qtbase-everywhere-src-$VERSION.tar.xz"
+        tar -xf qtbase.tar.xz
+        mv qtbase-everywhere-src-$VERSION qtbase
+        rm qtbase.tar.xz
+        
+        echo "Downloading qtsvg..."
+        curl -L -o qtsvg.tar.xz "https://download.qt.io/official_releases/qt/$MAJOR_MINOR/$VERSION/submodules/qtsvg-everywhere-src-$VERSION.tar.xz"
+        tar -xf qtsvg.tar.xz
+        mv qtsvg-everywhere-src-$VERSION qtsvg
+        rm qtsvg.tar.xz
+        
+        if [ ! -d "qtbase" ] || [ ! -d "qtsvg" ]; then
+          echo "Error: Qt6 source download failed or directory structure is incorrect"
+          exit 1
+        fi
+        echo "Qt6 source downloaded successfully"
+      shell: bash
+
+    - name: Configure CMake for Qt6 Base
+      env:
+        WORKSPACE: ${{ github.workspace }}
+      run: |
+        if command -v cygpath >/dev/null 2>&1; then
+          export WORKSPACE_UNIX=$(cygpath -u "$WORKSPACE")
+          echo "Converted with cygpath: $WORKSPACE_UNIX"
+        else
+          # fallback to simple replace
+          export WORKSPACE_UNIX=${WORKSPACE//\\//}
+          echo "cygpath not found; fallback: $WORKSPACE_UNIX"
+        fi      
+        # Verify Qt6 source directory exists
+        if [ ! -d "qt6-source/qtbase" ]; then
+          echo "Error: Qt6 base source directory not found"
+          exit 1
+        fi
+        mkdir -p qt6-source/build-base
+        cd qt6-source/build-base
+        cmake ../qtbase \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_INSTALL_PREFIX=$WORKSPACE_UNIX/qt6-install \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DQT_BUILD_EXAMPLES=OFF \
+          -DQT_BUILD_TESTS=OFF \
+          -DQT_FEATURE_static=ON \
+          -DQT_FEATURE_shared=OFF \
+          -DQT_FEATURE_framework=OFF \
+          -DQT_FEATURE_png=OFF \
+          -DQT_FEATURE_jpeg=OFF \
+          -DQT_FEATURE_sql=OFF \
+          -DQT_FEATURE_network=OFF \
+          -DQT_FEATURE_dbus=OFF \
+          -DQT_FEATURE_opengl=OFF \
+          -DQT_FEATURE_printsupport=OFF \
+          ${{ matrix.cmake_args }}
+      shell: bash
+
+    - name: Build Qt6 Base
+      run: |
+        cd qt6-source/build-base
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          ninja -j${NUMBER_OF_PROCESSORS:-4}
+        elif [ "${{ matrix.platform }}" == "macos" ]; then
+          ninja -j$(sysctl -n hw.logicalcpu)
+        else
+          ninja -j$(nproc)
+        fi
+      shell: bash
+
+    - name: Install Qt6 Base
+      run: |
+        cd qt6-source/build-base
+        ninja install
+      shell: bash
+
+    - name: Configure CMake for Qt6 SVG
+      env:
+        WORKSPACE: ${{ github.workspace }}
+      run: |
+        if command -v cygpath >/dev/null 2>&1; then
+          export WORKSPACE_UNIX=$(cygpath -u "$WORKSPACE")
+          echo "Converted with cygpath: $WORKSPACE_UNIX"
+        else
+          # fallback to simple replace
+          export WORKSPACE_UNIX=${WORKSPACE//\\//}
+          echo "cygpath not found; fallback: $WORKSPACE_UNIX"
+        fi      
+        # Verify Qt6 source directory exists
+        if [ ! -d "qt6-source/qtsvg" ]; then
+          echo "Error: Qt6 svg source directory not found"
+          exit 1
+        fi
+        mkdir -p qt6-source/build-svg
+        cd qt6-source/build-svg
+        cmake ../qtsvg \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_PREFIX_PATH=$WORKSPACE_UNIX/qt6-install \
+          -DCMAKE_INSTALL_PREFIX=$WORKSPACE_UNIX/qt6-install \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DQT_BUILD_EXAMPLES=OFF \
+          -DQT_BUILD_TESTS=OFF \
+          ${{ matrix.cmake_args }}
+      shell: bash
+
+    - name: Build Qt6 SVG
+      run: |
+        cd qt6-source/build-svg
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          ninja -j${NUMBER_OF_PROCESSORS:-4}
+        elif [ "${{ matrix.platform }}" == "macos" ]; then
+          ninja -j$(sysctl -n hw.logicalcpu)
+        else
+          ninja -j$(nproc)
+        fi
+      shell: bash
+
+    - name: Install Qt6 SVG
+      run: |
+        cd qt6-source/build-svg
+        ninja install
+      shell: bash
+
+    - name: Verify static build
+      run: |
+        echo "Checking Qt6 static libraries..."
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          win_search_dir="${{ github.workspace }}/qt6-install"
+          win_search_dir="${win_search_dir//\\//}"
+          find $win_search_dir -name "Qt6*.lib" | head -10
+        else
+          find ${{ github.workspace }}/qt6-install -name "libQt6*.a" | head -10
+        fi
+      shell: bash
+
+    - name: Create build artifact (Linux/macOS)
+      if: matrix.platform != 'windows'
+      run: |
+        cd ${{ github.workspace }}
+        tar -czf qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C qt6-install .
+      shell: bash
+      
+    - name: Create build artifact (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        Compress-Archive -Path 'qt6-install\\*' -DestinationPath 'qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.zip' -Force
+      shell: pwsh
+      
+    - name: Upload Qt6 static build
+      uses: actions/upload-artifact@v4
+      with:
+        name: qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}
+        path: qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.${{ matrix.archive_format }}
+        retention-days: 30
+
+    - name: Display build summary
+      run: |
+        echo "## Qt6 Build Summary (${{ matrix.platform }})" >> $GITHUB_STEP_SUMMARY
+        echo "- **Platform**: ${{ matrix.platform }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Qt6 Version**: ${{ steps.qt6-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Enabled Modules**: qtbase, qtsvg" >> $GITHUB_STEP_SUMMARY
+        echo "- **Static Build**: Enabled" >> $GITHUB_STEP_SUMMARY
+        echo "- **Shared Build**: Disabled" >> $GITHUB_STEP_SUMMARY
+        echo "- **Archive Format**: ${{ matrix.archive_format }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Platform-specific CMake Args" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo '${{ matrix.cmake_args }}' >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Installed Qt6 Libraries" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          find ${{ github.workspace }}/qt6-install -name "*.lib" 2>/dev/null | head -20 >> $GITHUB_STEP_SUMMARY || true
+        else
+          find ${{ github.workspace }}/qt6-install -name "*.a" 2>/dev/null | head -20 >> $GITHUB_STEP_SUMMARY || true
+        fi
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      shell: bash
