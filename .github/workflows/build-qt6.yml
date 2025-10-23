@@ -175,7 +175,7 @@ jobs:
     - name: Configure CMake for Qt6 Base (Windows)
       if: matrix.platform == 'windows'
       run: |
-        cd qtbase
+        cd qt6-source/qtbase
         ./configure -static -static-runtime -release -prefix ${{ github.workspace }}/qt6-install -platform win32-msvc \
                     -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
                     -confirm-license -make libs -nomake tools -nomake tests
