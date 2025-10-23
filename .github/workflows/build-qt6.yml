@@ -144,66 +144,35 @@ jobs:
       if: matrix.platform == 'windows'
       uses: ilammy/msvc-dev-cmd@v1      
 
-    - name: Configure CMake for Qt6 Base (Linux/macOS)
-      if: matrix.platform != 'windows'
-      run: |
-        mkdir -p qt6-source/build-base
-        cd qt6-source/build-base
-        ./configure -static -static-runtime -release -prefix ${{ github.workspace }}/qt6-install -platform win32-msvc \
-                    -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
-                    -confirm-license -make libs -nomake tools -nomake tests
-        cmake ../qtbase \
-          -G Ninja \
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/qt6-install \
-          -DBUILD_SHARED_LIBS=OFF \
-          -DQT_BUILD_EXAMPLES=OFF \
-          -DQT_BUILD_TESTS=OFF \
-          -DQT_FEATURE_static=ON \
-          -DQT_FEATURE_shared=OFF \
-          -DQT_FEATURE_framework=OFF \
-          -DQT_FEATURE_png=ON \
-          -DQT_FEATURE_jpeg=OFF \
-          -DQT_FEATURE_sql=OFF \
-          -DQT_FEATURE_network=OFF \
-          -DQT_FEATURE_dbus=OFF \
-          -DQT_FEATURE_opengl=OFF \
-          -DQT_FEATURE_printsupport=OFF \
-          ${{ matrix.cmake_args }}
-      shell: bash
+    #- name: Configure CMake for Qt6 Base (Linux/macOS)
+    #  if: matrix.platform != 'windows'
+    #  run: |
+    #    mkdir -p qt6-source/build-base
+    #    cd qt6-source/build-base
+    #    ./configure -static -static-runtime -release -prefix ${{ github.workspace }}/qt6-install -platform win32-msvc \
+    #                -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
+    #                -confirm-license -make libs -nomake tools -nomake tests
+    #    cmake ../qtbase \
+    #      -G Ninja \
+    #      -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+    #      -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/qt6-install \
+    #      -DBUILD_SHARED_LIBS=OFF \
+    #      -DQT_BUILD_EXAMPLES=OFF \
+    #      -DQT_BUILD_TESTS=OFF \
+    #      -DQT_FEATURE_static=ON \
+    #      -DQT_FEATURE_shared=OFF \
+    #      -DQT_FEATURE_framework=OFF \
+    #      -DQT_FEATURE_png=ON \
+    #      -DQT_FEATURE_jpeg=OFF \
+    #      -DQT_FEATURE_sql=OFF \
+    #      -DQT_FEATURE_network=OFF \
+    #      -DQT_FEATURE_dbus=OFF \
+    #      -DQT_FEATURE_opengl=OFF \
+    #      -DQT_FEATURE_printsupport=OFF \
+    #      ${{ matrix.cmake_args }}
+    #  shell: bash
 
-    - name: Configure CMake for Qt6 Base (Windows)
-      if: matrix.platform == 'windows'
-      run: |
-        cd qt6-source/qtbase
-        ./configure -static -static-runtime -release -prefix ${{ github.workspace }}/qt6-install -platform win32-msvc \
-                    -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
-                    -confirm-license -make libs -nomake tools -nomake tests
-        ninja -j${NUMBER_OF_PROCESSORS:-4}
-        ninja install
-      shell: bash
-
-    - name: Build Qt6 Base (Linux/macOS)
-      if: matrix.platform != 'windows'
-      run: |
-        cd qt6-source/build-base
-        if [ "${{ matrix.platform }}" == "windows" ]; then
-          ninja -j${NUMBER_OF_PROCESSORS:-4}
-        elif [ "${{ matrix.platform }}" == "macos" ]; then
-          ninja -j$(sysctl -n hw.logicalcpu)
-        else
-          ninja -j$(nproc)
-        fi
-      shell: bash
-
-    - name: Install Qt6 Base (Linux/macOS)
-      if: matrix.platform != 'windows'
-      run: |
-        cd qt6-source/build-base
-        ninja install
-      shell: bash
-
-    - name: Configure CMake for Qt6 SVG
+    - name: Configure CMake for Qt6 Base
       env:
         WORKSPACE: ${{ github.workspace }}
       run: |
@@ -214,28 +183,11 @@ jobs:
           # fallback to simple replace
           export WORKSPACE_UNIX=${WORKSPACE//\\//}
           echo "cygpath not found; fallback: $WORKSPACE_UNIX"
-        fi      
-        # Verify Qt6 source directory exists
-        if [ ! -d "qt6-source/qtsvg" ]; then
-          echo "Error: Qt6 svg source directory not found"
-          exit 1
-        fi
-        mkdir -p qt6-source/build-svg
-        cd qt6-source/build-svg
-        cmake ../qtsvg \
-          -G Ninja \
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_PREFIX_PATH=$WORKSPACE_UNIX/qt6-install \
-          -DCMAKE_INSTALL_PREFIX=$WORKSPACE_UNIX/qt6-install \
-          -DBUILD_SHARED_LIBS=OFF \
-          -DQT_BUILD_EXAMPLES=OFF \
-          -DQT_BUILD_TESTS=OFF \
-          ${{ matrix.cmake_args }}
-      shell: bash
-
-    - name: Build Qt6 SVG
-      run: |
-        cd qt6-source/build-svg
+        fi 
+        cd qt6-source/qtbase
+        ./configure -static -static-runtime -release -prefix $WORKSPACE_UNIX/qt6-install -platform win32-msvc \
+                    -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
+                    -confirm-license -make libs -nomake tools -nomake tests
         if [ "${{ matrix.platform }}" == "windows" ]; then
           ninja -j${NUMBER_OF_PROCESSORS:-4}
         elif [ "${{ matrix.platform }}" == "macos" ]; then
@@ -243,12 +195,19 @@ jobs:
         else
           ninja -j$(nproc)
         fi
-      shell: bash
-
-    - name: Install Qt6 SVG
-      run: |
-        cd qt6-source/build-svg
         ninja install
+        cd ../qtsvg
+        ./configure -static -static-runtime -release -prefix $WORKSPACE_UNIX/qt6-install -platform win32-msvc \
+                    -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
+                    -confirm-license -make libs -nomake tools -nomake tests
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          ninja -j${NUMBER_OF_PROCESSORS:-4}
+        elif [ "${{ matrix.platform }}" == "macos" ]; then
+          ninja -j$(sysctl -n hw.logicalcpu)
+        else
+          ninja -j$(nproc)
+        fi
+        ninja install        
       shell: bash
 
     - name: Verify static build
