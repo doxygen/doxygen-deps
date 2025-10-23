@@ -170,24 +170,23 @@ jobs:
       run: |
         mkdir qt6-source/build-base
         cd qt6-source/build-base
-        cmake ../qtbase \
-          -G Ninja \
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/qt6-install \
-          -DBUILD_SHARED_LIBS=OFF \
-          -DQT_BUILD_EXAMPLES=OFF \
-          -DQT_BUILD_TESTS=OFF \
-          -DQT_FEATURE_static=ON \
-          -DQT_FEATURE_shared=OFF \
-          -DQT_FEATURE_framework=OFF \
-          -DQT_FEATURE_png=ON \
-          -DQT_FEATURE_jpeg=OFF \
-          -DQT_FEATURE_sql=OFF \
-          -DQT_FEATURE_network=OFF \
-          -DQT_FEATURE_dbus=OFF \
-          -DQT_FEATURE_opengl=OFF \
-          -DQT_FEATURE_printsupport=OFF \
-          ${{ matrix.cmake_args }}
+        cmake ..\qtbase -G "Ninja" `
+           -DCMAKE_BUILD_TYPE=Release `
+           -DCMAKE_INSTALL_PREFIX="D:\a\doxygen-deps\doxygen-deps\qt6-install" `
+           -DBUILD_SHARED_LIBS=OFF `
+           -DQT_BUILD_EXAMPLES=OFF `
+           -DQT_BUILD_TESTS=OFF `
+           -DQT_FEATURE_static=ON `
+           -DQT_FEATURE_shared=OFF `
+           -DQT_FEATURE_framework=OFF `
+           -DQT_FEATURE_png=ON `
+           -DQT_FEATURE_jpeg=OFF `
+           -DQT_FEATURE_sql=OFF `
+           -DQT_FEATURE_network=OFF `
+           -DQT_FEATURE_dbus=OFF `
+           -DQT_FEATURE_opengl=OFF `
+           -DQT_FEATURE_printsupport=OFF `
+           -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
       shell: pwsh
       
 
