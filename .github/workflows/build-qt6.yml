@@ -165,6 +165,10 @@ jobs:
           ${{ matrix.cmake_args }}
       shell: bash
 
+    - name: Set up MSVC dev command prompt (Windows)
+      if: matrix.platform == 'windows'
+      uses: ilammy/msvc-dev-cmd@v1      
+
     - name: Configure CMake for Qt6 Base (Windows)
       if: matrix.platform == 'windows'
       run: |
