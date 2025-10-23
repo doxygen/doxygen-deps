@@ -197,7 +197,7 @@ jobs:
         fi
         ninja install
         cd ../qtsvg
-        $WORKSPACE_UNIX/qt6-install/bin/qt-configure-module .
+        cmd /C "call $WORKSPACE_UNIX/qt6-install/bin/qt-configure-module.bat ."
         cmake --build . --parallel
         cmake --install .
       shell: bash
