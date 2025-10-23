@@ -16,13 +16,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux
-            archive_format: tar.gz
-            cmake_args: >-
-              -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF
-              -DQT_BUILD_EXAMPLES=OFF
-              -DQT_BUILD_TESTS=OFF
+          #- os: ubuntu-latest
+          #  platform: linux
+          #  archive_format: tar.gz
+          #  cmake_args: >-
+          #    -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF
+          #    -DQT_BUILD_EXAMPLES=OFF
+          #    -DQT_BUILD_TESTS=OFF
           - os: windows-latest
             platform: windows
             archive_format: zip
@@ -30,13 +30,13 @@ jobs:
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DQT_BUILD_EXAMPLES=OFF
               -DQT_BUILD_TESTS=OFF
-          - os: macos-latest
-            platform: macos
-            archive_format: tar.gz
-            cmake_args: >-
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
-              -DQT_BUILD_EXAMPLES=OFF
-              -DQT_BUILD_TESTS=OFF
+          #- os: macos-latest
+          #  platform: macos
+          #  archive_format: tar.gz
+          #  cmake_args: >-
+          #    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+          #    -DQT_BUILD_EXAMPLES=OFF
+          #    -DQT_BUILD_TESTS=OFF
     runs-on: ${{ matrix.os }}
     
     steps:
@@ -51,8 +51,6 @@ jobs:
           build-essential \
           cmake \
           ninja-build \
-          git \
-          python3 \
           libfontconfig1-dev \
           libfreetype6-dev \
           libx11-dev \
@@ -142,36 +140,22 @@ jobs:
         echo "Qt6 source downloaded successfully"
       shell: bash
 
-    - name: Configure CMake for Qt6 Base
-      env:
-        WORKSPACE: ${{ github.workspace }}
+    - name: Configure CMake for Qt6 Base (Linux/macOS)
+      if: matrix.platform != 'windows'
       run: |
-        if command -v cygpath >/dev/null 2>&1; then
-          export WORKSPACE_UNIX=$(cygpath -u "$WORKSPACE")
-          echo "Converted with cygpath: $WORKSPACE_UNIX"
-        else
-          # fallback to simple replace
-          export WORKSPACE_UNIX=${WORKSPACE//\\//}
-          echo "cygpath not found; fallback: $WORKSPACE_UNIX"
-        fi      
-        # Verify Qt6 source directory exists
-        if [ ! -d "qt6-source/qtbase" ]; then
-          echo "Error: Qt6 base source directory not found"
-          exit 1
-        fi
         mkdir -p qt6-source/build-base
         cd qt6-source/build-base
         cmake ../qtbase \
           -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_INSTALL_PREFIX=$WORKSPACE_UNIX/qt6-install \
+          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/qt6-install \
           -DBUILD_SHARED_LIBS=OFF \
           -DQT_BUILD_EXAMPLES=OFF \
           -DQT_BUILD_TESTS=OFF \
           -DQT_FEATURE_static=ON \
           -DQT_FEATURE_shared=OFF \
           -DQT_FEATURE_framework=OFF \
-          -DQT_FEATURE_png=OFF \
+          -DQT_FEATURE_png=ON \
           -DQT_FEATURE_jpeg=OFF \
           -DQT_FEATURE_sql=OFF \
           -DQT_FEATURE_network=OFF \
@@ -180,6 +164,32 @@ jobs:
           -DQT_FEATURE_printsupport=OFF \
           ${{ matrix.cmake_args }}
       shell: bash
+
+    - name: Configure CMake for Qt6 Base (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        mkdir qt6-source/build-base
+        cd qt6-source/build-base
+        cmake ../qtbase \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/qt6-install \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DQT_BUILD_EXAMPLES=OFF \
+          -DQT_BUILD_TESTS=OFF \
+          -DQT_FEATURE_static=ON \
+          -DQT_FEATURE_shared=OFF \
+          -DQT_FEATURE_framework=OFF \
+          -DQT_FEATURE_png=ON \
+          -DQT_FEATURE_jpeg=OFF \
+          -DQT_FEATURE_sql=OFF \
+          -DQT_FEATURE_network=OFF \
+          -DQT_FEATURE_dbus=OFF \
+          -DQT_FEATURE_opengl=OFF \
+          -DQT_FEATURE_printsupport=OFF \
+          ${{ matrix.cmake_args }}
+      shell: pwsh
+      
 
     - name: Build Qt6 Base
       run: |
