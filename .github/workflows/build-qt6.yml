@@ -140,11 +140,18 @@ jobs:
         echo "Qt6 source downloaded successfully"
       shell: bash
 
+    - name: Set up MSVC dev command prompt (Windows)
+      if: matrix.platform == 'windows'
+      uses: ilammy/msvc-dev-cmd@v1      
+
     - name: Configure CMake for Qt6 Base (Linux/macOS)
       if: matrix.platform != 'windows'
       run: |
         mkdir -p qt6-source/build-base
         cd qt6-source/build-base
+        ./configure -static -static-runtime -release -prefix ${{ github.workspace }}/qt6-install -platform win32-msvc \
+                    -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
+                    -confirm-license -make libs -nomake tools -nomake tests
         cmake ../qtbase \
           -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
@@ -165,36 +172,20 @@ jobs:
           ${{ matrix.cmake_args }}
       shell: bash
 
-    - name: Set up MSVC dev command prompt (Windows)
-      if: matrix.platform == 'windows'
-      uses: ilammy/msvc-dev-cmd@v1      
-
     - name: Configure CMake for Qt6 Base (Windows)
       if: matrix.platform == 'windows'
       run: |
-        mkdir qt6-source/build-base
-        cd qt6-source/build-base
-        cmake ..\qtbase -G "Ninja" `
-           -DCMAKE_BUILD_TYPE=Release `
-           -DCMAKE_INSTALL_PREFIX="D:\a\doxygen-deps\doxygen-deps\qt6-install" `
-           -DBUILD_SHARED_LIBS=OFF `
-           -DQT_BUILD_EXAMPLES=OFF `
-           -DQT_BUILD_TESTS=OFF `
-           -DQT_FEATURE_static=ON `
-           -DQT_FEATURE_shared=OFF `
-           -DQT_FEATURE_framework=OFF `
-           -DQT_FEATURE_png=ON `
-           -DQT_FEATURE_jpeg=OFF `
-           -DQT_FEATURE_sql=OFF `
-           -DQT_FEATURE_network=OFF `
-           -DQT_FEATURE_dbus=OFF `
-           -DQT_FEATURE_opengl=OFF `
-           -DQT_FEATURE_printsupport=OFF `
-           -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-      shell: pwsh
-      
+        mkdir -p qtbase
+        cd qt6base
+        ./configure -static -static-runtime -release -prefix ${{ github.workspace }}/qt6-install -platform win32-msvc \
+                    -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
+                    -confirm-license -make libs -nomake tools -nomake tests
+        ninja -j${NUMBER_OF_PROCESSORS:-4}
+        ninja install
+      shell: bash
 
-    - name: Build Qt6 Base
+    - name: Build Qt6 Base (Linux/macOS)
+      if: matrix.platform != 'windows'
       run: |
         cd qt6-source/build-base
         if [ "${{ matrix.platform }}" == "windows" ]; then
@@ -206,7 +197,8 @@ jobs:
         fi
       shell: bash
 
-    - name: Install Qt6 Base
+    - name: Install Qt6 Base (Linux/macOS)
+      if: matrix.platform != 'windows'
       run: |
         cd qt6-source/build-base
         ninja install
