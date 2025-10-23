@@ -95,9 +95,9 @@ jobs:
     - name: Set Qt6 version
       id: qt6-version
       run: |
-        # Using a fixed Qt6 LTS version for stability
-        # Update this version when a new Qt6 LTS is released
-        VERSION="6.8.1"
+        # Using a fixed Qt6 version for stability
+        # Update this version when a new Qt6 is released
+        VERSION="6.10.0"
         echo "Qt6 version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
       shell: bash
@@ -197,17 +197,9 @@ jobs:
         fi
         ninja install
         cd ../qtsvg
-        ./configure -static -static-runtime -release -prefix $WORKSPACE_UNIX/qt6-install -platform win32-msvc \
-                    -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
-                    -confirm-license -make libs -nomake tools -nomake tests
-        if [ "${{ matrix.platform }}" == "windows" ]; then
-          ninja -j${NUMBER_OF_PROCESSORS:-4}
-        elif [ "${{ matrix.platform }}" == "macos" ]; then
-          ninja -j$(sysctl -n hw.logicalcpu)
-        else
-          ninja -j$(nproc)
-        fi
-        ninja install        
+        $WORKSPACE_UNIX/qt6-install/bin/qt-configure-module .
+        cmake --build . --parallel
+        cmake --install .
       shell: bash
 
     - name: Verify static build
