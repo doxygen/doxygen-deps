@@ -172,7 +172,7 @@ jobs:
     #      ${{ matrix.cmake_args }}
     #  shell: bash
 
-    - name: Configure CMake for Qt6 Base
+    - name: Configure CMake for Qt6 Base (Windows)
       env:
         WORKSPACE: ${{ github.workspace }}
       run: |
@@ -197,10 +197,19 @@ jobs:
         fi
         ninja install
         cd ../qtsvg
-        cmd /C "call ${{ github.workspace }}\qt6-install\bin\qt-configure-module.bat ."
+        cmd /c "call ${{ github.workspace }}\qt6-install\bin\qt-configure-module.bat ."
         cmake --build . --parallel
         cmake --install .
       shell: bash
+
+    - name: Configure CMake for Qt6 SVG (Windows)
+      if: matrix.platform == 'windows'
+      run: |      
+        cd qt6-source\qtsvg
+        call ${{ github.workspace }}\qt6-install\bin\qt-configure-module.bat .
+        cmake --build . --parallel
+        cmake --install .
+      shell: cmd
 
     - name: Verify static build
       run: |
