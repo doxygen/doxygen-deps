@@ -173,30 +173,18 @@ jobs:
     #  shell: bash
 
     - name: Configure CMake for Qt6 Base (Windows)
-      env:
-        WORKSPACE: ${{ github.workspace }}
+      if: matrix.platform == 'windows'
       run: |
-        if command -v cygpath >/dev/null 2>&1; then
-          export WORKSPACE_UNIX=$(cygpath -u "$WORKSPACE")
-          echo "Converted with cygpath: $WORKSPACE_UNIX"
-        else
-          # fallback to simple replace
-          export WORKSPACE_UNIX=${WORKSPACE//\\//}
-          echo "cygpath not found; fallback: $WORKSPACE_UNIX"
-        fi 
-        cd qt6-source/qtbase
-        ./configure -static -static-runtime -release -prefix $WORKSPACE_UNIX/qt6-install -platform win32-msvc \
-                    -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource \
-                    -confirm-license -make libs -nomake tools -nomake tests
-        if [ "${{ matrix.platform }}" == "windows" ]; then
-          ninja -j${NUMBER_OF_PROCESSORS:-4}
-        elif [ "${{ matrix.platform }}" == "macos" ]; then
-          ninja -j$(sysctl -n hw.logicalcpu)
-        else
-          ninja -j$(nproc)
-        fi
-        ninja install
-      shell: bash
+        dir
+        cd qt6-source
+        dir
+        cd qtbase
+        dir
+        call configure.bat -static -static-runtime -release -prefix ${{ github.workspace }}\qt6-install -platform win32-msvc -qt-zlib -qt-pcre -qt-libpng -qt-libjpeg -qt-freetype -opengl desktop -sql-sqlite -sql-odbc -no-openssl -opensource -confirm-license -make libs -nomake tools -nomake tests
+        dir
+        cmake --build . --parallel
+        cmake --install .
+      shell: cmd
 
     - name: Configure CMake for Qt6 SVG (Windows)
       if: matrix.platform == 'windows'
