@@ -46,7 +46,8 @@ jobs:
           flex \
           bison \
           libgl1-mesa-dev \
-          libxkbcommon-dev
+          libxkbcommon-dev \
+          libxkbcommon-x11-dev
       shell: bash
 
     - name: Install dependencies (Windows)
@@ -240,38 +241,39 @@ jobs:
       if: matrix.platform == 'windows'
       uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Configure CMake for Doxygen
-      env:
-        WORKSPACE: ${{ github.workspace }}
+    - name: Configure CMake for Doxygen (Linux/macOS)
+      if: matrix.platform != 'windows'
       run: |
-        if command -v cygpath >/dev/null 2>&1; then
-          export WORKSPACE_UNIX=$(cygpath -u "$WORKSPACE")
-          echo "Converted with cygpath: $WORKSPACE_UNIX"
-        else
-          export WORKSPACE_UNIX=${WORKSPACE//\\//}
-          echo "cygpath not found; fallback: $WORKSPACE_UNIX"
-        fi
-        
-        # Verify Doxygen source directory exists
-        if [ ! -d "doxygen" ]; then
-          echo "Error: Doxygen source directory not found"
-          exit 1
-        fi
-        
         mkdir -p doxygen/build
-        cd doxygen/build
-        
+        cd doxygen/build        
         cmake .. \
           -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_INSTALL_PREFIX=$WORKSPACE_UNIX/doxygen-install \
+          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/doxygen-install \
           -Dbuild_search=YES \
           -Dbuild_wizard=YES \
           -Duse_libclang=YES \
           -Dstatic_libclang=YES \
           -Dforce_qt=Qt6 \
-          -DCMAKE_PREFIX_PATH="$WORKSPACE_UNIX/llvm-install;$WORKSPACE_UNIX/qt6-install;$WORKSPACE_UNIX/xapian-install"
+          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
       shell: bash
+
+    - name: Configure CMake for Doxygen (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        mkdir doxygen\build
+        cd doxygen\build
+        cmake .. -G Ninja ^
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
+              -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\doxygen-install ^
+              -Dbuild_search=YES ^
+              -Dbuild_wizard=YES ^
+              -Duse_libclang=YES ^
+              -Dstatic_libclang=YES ^
+              -Dforce_qt=Qt6 ^
+              -DCMAKE_PREFIX_PATH="${{ github.workspace }}\llvm-install;${{ github.workspace }}\qt6-install;${{ github.workspace }}\xapian-install"
+      shell: cmd
+
 
     - name: Build Doxygen
       run: |
