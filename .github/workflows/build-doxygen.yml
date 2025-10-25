@@ -44,7 +44,8 @@ jobs:
           git \
           python3 \
           flex \
-          bison
+          bison \
+          libgl1-mesa-dev
       shell: bash
 
     - name: Install dependencies (Windows)
@@ -57,6 +58,8 @@ jobs:
       if: matrix.platform == 'macos'
       run: |
         brew install cmake ninja flex bison
+        echo 'export PATH="/opt/homebrew/opt/flex/bin:$PATH"' >> /Users/runner/.bash_profile
+        echo 'export PATH="/opt/homebrew/opt/bison/bin:$PATH"' >> /Users/runner/.bash_profile
       shell: bash
 
     - name: Get latest Doxygen release tag
@@ -188,7 +191,9 @@ jobs:
       if: matrix.platform == 'windows'
       run: |
         mkdir llvm-install
+        dir
         cd llvm-artifact\llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}
+        dir
         # Extract the zip archive to the install directory
         Expand-Archive -Path "llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../../llvm-install"
       shell: pwsh
