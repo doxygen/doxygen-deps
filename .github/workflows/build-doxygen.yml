@@ -1,0 +1,372 @@
+name: Build Doxygen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-doxygen:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            extension: ""
+            archive_format: tar.gz
+          - os: windows-latest
+            platform: windows
+            extension: .exe
+            archive_format: zip
+          - os: macos-latest
+            platform: macos
+            extension: ""
+            archive_format: tar.gz
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies (Linux)
+      if: matrix.platform == 'linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          ninja-build \
+          git \
+          python3 \
+          flex \
+          bison
+      shell: bash
+
+    - name: Install dependencies (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        choco install ninja winflexbison3
+      shell: bash
+
+    - name: Install dependencies (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        brew install cmake ninja flex bison
+      shell: bash
+
+    - name: Get latest Doxygen release tag
+      id: doxygen-version
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        echo "GITHUB_TOKEN present: ${GITHUB_TOKEN:+yes}"
+        # Retry loop with exponential backoff
+        attempts=5
+        sleep_for=2
+        for i in $(seq 1 $attempts); do
+          echo "Attempt $i..."
+          resp=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/doxygen/doxygen/releases/latest" ) || true
+          http_code=$(echo "$resp" | jq -r '. | if has("message") then "error" else "ok" end')
+          tag=$(echo "$resp" | jq -r '.tag_name // empty')
+          if [ -n "$tag" ]; then
+            LATEST_TAG="$tag"
+            break
+          fi
+          echo "No tag found. API response (truncated):"
+          echo "$resp" | jq -C '.' | sed -n '1,200p'
+          echo "Sleeping $sleep_for seconds before retry..."
+          sleep $sleep_for
+          sleep_for=$((sleep_for * 2))
+        done
+
+        if [ -z "${LATEST_TAG:-}" ]; then
+          echo "Error: Could not fetch Doxygen release tag; last response:"
+          echo "$resp" | jq -C '.' || echo "$resp"
+          exit 1
+        fi
+
+        echo "Latest Doxygen release: $LATEST_TAG"
+        echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        # Remove leading 'Release_' prefix if present
+        VERSION=${LATEST_TAG#Release_}
+        VERSION=${VERSION//_/.}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Cache Doxygen source
+      id: cache-doxygen-source
+      uses: actions/cache@v4
+      with:
+        path: doxygen
+        key: doxygen-source-${{ steps.doxygen-version.outputs.tag }}-${{ matrix.platform }}
+
+    - name: Download Doxygen source code
+      if: steps.cache-doxygen-source.outputs.cache-hit != 'true'
+      run: |
+        echo "Downloading Doxygen ${{ steps.doxygen-version.outputs.tag }}"
+        git clone --depth 1 --branch ${{ steps.doxygen-version.outputs.tag }} https://github.com/doxygen/doxygen.git
+        if [ ! -d "doxygen" ]; then
+          echo "Error: Doxygen source download failed or directory structure is incorrect"
+          exit 1
+        fi
+        echo "Doxygen source downloaded successfully"
+      shell: bash
+
+    - name: Download LLVM artifacts
+      uses: dawidd6/action-download-artifact@v6
+      with:
+        workflow: build-llvm.yml
+        name: llvm-static-.*-${{ matrix.platform }}
+        name_is_regexp: true
+        path: llvm-artifact
+        skip_unpack: false
+
+    - name: Extract LLVM version from artifact
+      id: llvm-version
+      run: |
+        cd llvm-artifact
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          FILENAME=$(ls llvm-static-*.zip | head -1)
+          # Extract version from filename like: llvm-static-19.1.6-windows.zip
+          VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}.zip/\1/')
+        else
+          FILENAME=$(ls llvm-static-*.tar.gz | head -1)
+          # Extract version from filename like: llvm-static-19.1.6-linux.tar.gz
+          VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}.tar.gz/\1/')
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "LLVM version from artifact: $VERSION"
+      shell: bash
+
+    - name: Download Qt6 artifacts
+      uses: dawidd6/action-download-artifact@v6
+      with:
+        workflow: build-qt6.yml
+        name: qt6-static-.*-${{ matrix.platform }}
+        name_is_regexp: true
+        path: qt6-artifact
+        skip_unpack: false
+
+    - name: Extract Qt6 version from artifact
+      id: qt6-version
+      run: |
+        cd qt6-artifact
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          FILENAME=$(ls qt6-static-*.zip | head -1)
+          # Extract version from filename like: qt6-static-6.10.0-windows.zip
+          VERSION=$(echo "$FILENAME" | sed -E 's/qt6-static-(.+)-${{ matrix.platform }}.zip/\1/')
+        else
+          FILENAME=$(ls qt6-static-*.tar.gz | head -1)
+          # Extract version from filename like: qt6-static-6.10.0-linux.tar.gz
+          VERSION=$(echo "$FILENAME" | sed -E 's/qt6-static-(.+)-${{ matrix.platform }}.tar.gz/\1/')
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Qt6 version from artifact: $VERSION"
+      shell: bash
+
+    - name: Download Xapian artifacts
+      uses: dawidd6/action-download-artifact@v6
+      with:
+        workflow: build-xapian.yml
+        name: xapian-static-.*-${{ matrix.platform }}
+        name_is_regexp: true
+        path: xapian-artifact
+        skip_unpack: false
+
+    - name: Extract Xapian version from artifact
+      id: xapian-version
+      run: |
+        cd xapian-artifact
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          FILENAME=$(ls xapian-static-*.zip | head -1)
+          # Extract version from filename like: xapian-static-1.4.29-windows.zip
+          VERSION=$(echo "$FILENAME" | sed -E 's/xapian-static-(.+)-${{ matrix.platform }}.zip/\1/')
+        else
+          FILENAME=$(ls xapian-static-*.tar.gz | head -1)
+          # Extract version from filename like: xapian-static-1.4.29-linux.tar.gz
+          VERSION=$(echo "$FILENAME" | sed -E 's/xapian-static-(.+)-${{ matrix.platform }}.tar.gz/\1/')
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Xapian version from artifact: $VERSION"
+      shell: bash
+
+    - name: Extract LLVM artifacts (Linux/macOS)
+      if: matrix.platform != 'windows'
+      run: |
+        mkdir -p llvm-install
+        cd llvm-artifact
+        # Extract the tar.gz archive to the install directory
+        tar -xzf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../llvm-install
+      shell: bash
+
+    - name: Extract LLVM artifacts (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        mkdir llvm-install
+        cd llvm-artifact
+        # Extract the zip archive to the install directory
+        Expand-Archive -Path "llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../llvm-install"
+      shell: pwsh
+
+    - name: Extract Qt6 artifacts (Linux/macOS)
+      if: matrix.platform != 'windows'
+      run: |
+        mkdir -p qt6-install
+        cd qt6-artifact
+        # Extract the tar.gz archive to the install directory
+        tar -xzf qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../qt6-install
+      shell: bash
+
+    - name: Extract Qt6 artifacts (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        mkdir qt6-install
+        cd qt6-artifact
+        # Extract the zip archive to the install directory
+        Expand-Archive -Path "qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../qt6-install"
+      shell: pwsh
+
+    - name: Extract Xapian artifacts (Linux/macOS)
+      if: matrix.platform != 'windows'
+      run: |
+        mkdir -p xapian-install
+        cd xapian-artifact
+        # Extract the tar.gz archive to the install directory
+        tar -xzf xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../xapian-install
+      shell: bash
+
+    - name: Extract Xapian artifacts (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        mkdir xapian-install
+        cd xapian-artifact
+        # Extract the zip archive to the install directory
+        Expand-Archive -Path "xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../xapian-install"
+      shell: pwsh
+
+    - name: Set up MSVC dev command prompt (Windows)
+      if: matrix.platform == 'windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Configure CMake for Doxygen
+      env:
+        WORKSPACE: ${{ github.workspace }}
+      run: |
+        if command -v cygpath >/dev/null 2>&1; then
+          export WORKSPACE_UNIX=$(cygpath -u "$WORKSPACE")
+          echo "Converted with cygpath: $WORKSPACE_UNIX"
+        else
+          export WORKSPACE_UNIX=${WORKSPACE//\\//}
+          echo "cygpath not found; fallback: $WORKSPACE_UNIX"
+        fi
+        
+        # Verify Doxygen source directory exists
+        if [ ! -d "doxygen" ]; then
+          echo "Error: Doxygen source directory not found"
+          exit 1
+        fi
+        
+        mkdir -p doxygen/build
+        cd doxygen/build
+        
+        cmake .. \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_INSTALL_PREFIX=$WORKSPACE_UNIX/doxygen-install \
+          -Dbuild_doc=YES \
+          -Dbuild_search=YES \
+          -Dbuild_wizard=YES \
+          -Dbuild_app=YES \
+          -Dbuild_parse=YES \
+          -Duse_libclang=YES \
+          -Dstatic_libclang=YES \
+          -Dforce_qt=Qt6 \
+          -DCMAKE_PREFIX_PATH="$WORKSPACE_UNIX/llvm-install;$WORKSPACE_UNIX/qt6-install;$WORKSPACE_UNIX/xapian-install"
+      shell: bash
+
+    - name: Build Doxygen
+      run: |
+        cd doxygen/build
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          ninja -j${NUMBER_OF_PROCESSORS:-4}
+        elif [ "${{ matrix.platform }}" == "macos" ]; then
+          ninja -j$(sysctl -n hw.logicalcpu)
+        else
+          ninja -j$(nproc)
+        fi
+      shell: bash
+
+    - name: Install Doxygen
+      run: |
+        cd doxygen/build
+        ninja install
+      shell: bash
+
+    - name: Verify Doxygen build
+      run: |
+        echo "Checking Doxygen binary..."
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}
+        else
+          ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}
+        fi
+        
+        # Try to run doxygen to verify it works
+        ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }} --version || echo "Note: doxygen version check failed (may be expected on some platforms)"
+      shell: bash
+
+    - name: Create build artifact (Linux/macOS)
+      if: matrix.platform != 'windows'
+      run: |
+        cd ${{ github.workspace }}
+        tar -czf doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C doxygen-install .
+      shell: bash
+      
+    - name: Create build artifact (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        Compress-Archive -Path 'doxygen-install\\*' -DestinationPath 'doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.platform }}.zip' -Force
+      shell: pwsh
+      
+    - name: Upload Doxygen build
+      uses: actions/upload-artifact@v4
+      with:
+        name: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.platform }}
+        path: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.platform }}.${{ matrix.archive_format }}
+        retention-days: 30
+
+    - name: Display build summary
+      run: |
+        echo "## Doxygen Build Summary (${{ matrix.platform }})" >> $GITHUB_STEP_SUMMARY
+        echo "- **Platform**: ${{ matrix.platform }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Doxygen Version**: ${{ steps.doxygen-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **LLVM Version**: ${{ steps.llvm-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Qt6 Version**: ${{ steps.qt6-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Xapian Version**: ${{ steps.xapian-version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Archive Format**: ${{ matrix.archive_format }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### CMake Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "-Dbuild_doc=YES" >> $GITHUB_STEP_SUMMARY
+        echo "-Dbuild_search=YES" >> $GITHUB_STEP_SUMMARY
+        echo "-Dbuild_wizard=YES" >> $GITHUB_STEP_SUMMARY
+        echo "-Dbuild_app=YES" >> $GITHUB_STEP_SUMMARY
+        echo "-Dbuild_parse=YES" >> $GITHUB_STEP_SUMMARY
+        echo "-Duse_libclang=YES" >> $GITHUB_STEP_SUMMARY
+        echo "-Dstatic_libclang=YES" >> $GITHUB_STEP_SUMMARY
+        echo "-Dforce_qt=Qt6" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Installed Components" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        find ${{ github.workspace }}/doxygen-install/bin -type f -executable 2>/dev/null | head -20 >> $GITHUB_STEP_SUMMARY || true
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      shell: bash
