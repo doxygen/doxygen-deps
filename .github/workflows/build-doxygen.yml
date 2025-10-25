@@ -191,7 +191,7 @@ jobs:
       run: |
         mkdir -p llvm-install
         cd llvm-artifact
-        # The artifact is already unpacked, so we extract the tar.gz
+        # Extract the tar.gz archive to the install directory
         tar -xzf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../llvm-install
       shell: bash
 
@@ -200,7 +200,7 @@ jobs:
       run: |
         mkdir llvm-install
         cd llvm-artifact
-        # The artifact is already unpacked, so we extract the zip
+        # Extract the zip archive to the install directory
         Expand-Archive -Path "llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../llvm-install"
       shell: pwsh
 
@@ -209,7 +209,7 @@ jobs:
       run: |
         mkdir -p qt6-install
         cd qt6-artifact
-        # The artifact is already unpacked, so we extract the tar.gz
+        # Extract the tar.gz archive to the install directory
         tar -xzf qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../qt6-install
       shell: bash
 
@@ -218,7 +218,7 @@ jobs:
       run: |
         mkdir qt6-install
         cd qt6-artifact
-        # The artifact is already unpacked, so we extract the zip
+        # Extract the zip archive to the install directory
         Expand-Archive -Path "qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../qt6-install"
       shell: pwsh
 
@@ -227,7 +227,7 @@ jobs:
       run: |
         mkdir -p xapian-install
         cd xapian-artifact
-        # The artifact is already unpacked, so we extract the tar.gz
+        # Extract the tar.gz archive to the install directory
         tar -xzf xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../xapian-install
       shell: bash
 
@@ -236,7 +236,7 @@ jobs:
       run: |
         mkdir xapian-install
         cd xapian-artifact
-        # The artifact is already unpacked, so we extract the zip
+        # Extract the zip archive to the install directory
         Expand-Archive -Path "xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../xapian-install"
       shell: pwsh
 
