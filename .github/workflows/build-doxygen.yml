@@ -179,58 +179,54 @@ jobs:
       if: matrix.platform != 'windows'
       run: |
         mkdir -p llvm-install
-        cd llvm-artifact
-        ls
-        echo "==="
-        ls llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}
-        echo "==="
+        cd llvm-artifact/llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}
         # Extract the tar.gz archive to the install directory
-        tar -xzf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../llvm-install
+        tar -xzf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../../llvm-install
       shell: bash
 
     - name: Extract LLVM artifacts (Windows)
       if: matrix.platform == 'windows'
       run: |
         mkdir llvm-install
-        cd llvm-artifact
+        cd llvm-artifact\llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}
         # Extract the zip archive to the install directory
-        Expand-Archive -Path "llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../llvm-install"
+        Expand-Archive -Path "llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../../llvm-install"
       shell: pwsh
 
     - name: Extract Qt6 artifacts (Linux/macOS)
       if: matrix.platform != 'windows'
       run: |
         mkdir -p qt6-install
-        cd qt6-artifact
+        cd qt6-artifact/qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}
         # Extract the tar.gz archive to the install directory
-        tar -xzf qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../qt6-install
+        tar -xzf qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../../qt6-install
       shell: bash
 
     - name: Extract Qt6 artifacts (Windows)
       if: matrix.platform == 'windows'
       run: |
         mkdir qt6-install
-        cd qt6-artifact
+        cd qt6-artifact\qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}
         # Extract the zip archive to the install directory
-        Expand-Archive -Path "qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../qt6-install"
+        Expand-Archive -Path "qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../../qt6-install"
       shell: pwsh
 
     - name: Extract Xapian artifacts (Linux/macOS)
       if: matrix.platform != 'windows'
       run: |
         mkdir -p xapian-install
-        cd xapian-artifact
+        cd xapian-artifact/xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}
         # Extract the tar.gz archive to the install directory
-        tar -xzf xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../xapian-install
+        tar -xzf xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../../xapian-install
       shell: bash
 
     - name: Extract Xapian artifacts (Windows)
       if: matrix.platform == 'windows'
       run: |
         mkdir xapian-install
-        cd xapian-artifact
+        cd xapian-artifact\xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}
         # Extract the zip archive to the install directory
-        Expand-Archive -Path "xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../xapian-install"
+        Expand-Archive -Path "xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../../xapian-install"
       shell: pwsh
 
     - name: Set up MSVC dev command prompt (Windows)
