@@ -133,10 +133,10 @@ jobs:
         ls
         cd llvm-artifact
         ls
-        FILENAME=$(ls llvm-static-*.zip | head -1)
+        FILENAME=$(ls llvm-static-* | head -1)
         echo "filename=$FILENAME"
         # Extract version from filename like: llvm-static-19.1.6-windows.zip
-        VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}.zip/\1/')        
+        VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}/\1/')        
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "LLVM version from artifact: $VERSION"
       shell: bash
