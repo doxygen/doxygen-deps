@@ -130,13 +130,9 @@ jobs:
     - name: Extract LLVM version from artifact
       id: llvm-version
       run: |
-        ls
         cd llvm-artifact
-        ls
         FILENAME=$(ls llvm-static-* | head -1)
-        echo "filename=$FILENAME"
-        # Extract version from filename like: llvm-static-19.1.6-windows.zip
-        VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}/\1/')        
+        VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}.*/\1/')        
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "LLVM version from artifact: $VERSION"
       shell: bash
@@ -154,15 +150,8 @@ jobs:
       id: qt6-version
       run: |
         cd qt6-artifact
-        if [ "${{ matrix.platform }}" == "windows" ]; then
-          FILENAME=$(ls qt6-static-*.zip | head -1)
-          # Extract version from filename like: qt6-static-6.10.0-windows.zip
-          VERSION=$(echo "$FILENAME" | sed -E 's/qt6-static-(.+)-${{ matrix.platform }}.zip/\1/')
-        else
-          FILENAME=$(ls qt6-static-*.tar.gz | head -1)
-          # Extract version from filename like: qt6-static-6.10.0-linux.tar.gz
-          VERSION=$(echo "$FILENAME" | sed -E 's/qt6-static-(.+)-${{ matrix.platform }}.tar.gz/\1/')
-        fi
+        FILENAME=$(ls qt6-static-* | head -1)
+        VERSION=$(echo "$FILENAME" | sed -E 's/qt6-static-(.+)-${{ matrix.platform }}.*/\1/')
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Qt6 version from artifact: $VERSION"
       shell: bash
@@ -180,15 +169,8 @@ jobs:
       id: xapian-version
       run: |
         cd xapian-artifact
-        if [ "${{ matrix.platform }}" == "windows" ]; then
-          FILENAME=$(ls xapian-static-*.zip | head -1)
-          # Extract version from filename like: xapian-static-1.4.29-windows.zip
-          VERSION=$(echo "$FILENAME" | sed -E 's/xapian-static-(.+)-${{ matrix.platform }}.zip/\1/')
-        else
-          FILENAME=$(ls xapian-static-*.tar.gz | head -1)
-          # Extract version from filename like: xapian-static-1.4.29-linux.tar.gz
-          VERSION=$(echo "$FILENAME" | sed -E 's/xapian-static-(.+)-${{ matrix.platform }}.tar.gz/\1/')
-        fi
+        FILENAME=$(ls xapian-static-* | head -1)
+        VERSION=$(echo "$FILENAME" | sed -E 's/xapian-static-(.+)-${{ matrix.platform }}.*/\1/')
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Xapian version from artifact: $VERSION"
       shell: bash
@@ -198,6 +180,10 @@ jobs:
       run: |
         mkdir -p llvm-install
         cd llvm-artifact
+        ls
+        echo "==="
+        ls llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}
+        echo "==="
         # Extract the tar.gz archive to the install directory
         tar -xzf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C ../llvm-install
       shell: bash
