@@ -118,76 +118,83 @@ jobs:
         echo "Doxygen source downloaded successfully"
       shell: bash
 
-    - name: Get LLVM version
-      id: llvm-version
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        set -euo pipefail
-        # Fetch latest LLVM release tag
-        attempts=5
-        sleep_for=2
-        for i in $(seq 1 $attempts); do
-          echo "Attempt $i..."
-          resp=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/llvm/llvm-project/releases/latest" ) || true
-          tag=$(echo "$resp" | jq -r '.tag_name // empty')
-          if [ -n "$tag" ]; then
-            LATEST_TAG="$tag"
-            break
-          fi
-          sleep $sleep_for
-          sleep_for=$((sleep_for * 2))
-        done
-
-        if [ -z "${LATEST_TAG:-}" ]; then
-          echo "Error: Could not fetch LLVM release tag"
-          exit 1
-        fi
-
-        VERSION=${LATEST_TAG#llvmorg-}
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "LLVM version: $VERSION"
-      shell: bash
-
-    - name: Set Qt6 version
-      id: qt6-version
-      run: |
-        VERSION="6.10.0"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "Qt6 version: $VERSION"
-      shell: bash
-
-    - name: Set Xapian version
-      id: xapian-version
-      run: |
-        VERSION="1.4.29"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "Xapian version: $VERSION"
-      shell: bash
-
     - name: Download LLVM artifacts
       uses: dawidd6/action-download-artifact@v6
       with:
         workflow: build-llvm.yml
-        name: llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}
+        name: llvm-static-.*-${{ matrix.platform }}
+        name_is_regexp: true
         path: llvm-artifact
         skip_unpack: false
+
+    - name: Extract LLVM version from artifact
+      id: llvm-version
+      run: |
+        cd llvm-artifact
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          FILENAME=$(ls llvm-static-*.zip | head -1)
+          # Extract version from filename like: llvm-static-19.1.6-windows.zip
+          VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}.zip/\1/')
+        else
+          FILENAME=$(ls llvm-static-*.tar.gz | head -1)
+          # Extract version from filename like: llvm-static-19.1.6-linux.tar.gz
+          VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}.tar.gz/\1/')
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "LLVM version from artifact: $VERSION"
+      shell: bash
 
     - name: Download Qt6 artifacts
       uses: dawidd6/action-download-artifact@v6
       with:
         workflow: build-qt6.yml
-        name: qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}
+        name: qt6-static-.*-${{ matrix.platform }}
+        name_is_regexp: true
         path: qt6-artifact
         skip_unpack: false
+
+    - name: Extract Qt6 version from artifact
+      id: qt6-version
+      run: |
+        cd qt6-artifact
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          FILENAME=$(ls qt6-static-*.zip | head -1)
+          # Extract version from filename like: qt6-static-6.10.0-windows.zip
+          VERSION=$(echo "$FILENAME" | sed -E 's/qt6-static-(.+)-${{ matrix.platform }}.zip/\1/')
+        else
+          FILENAME=$(ls qt6-static-*.tar.gz | head -1)
+          # Extract version from filename like: qt6-static-6.10.0-linux.tar.gz
+          VERSION=$(echo "$FILENAME" | sed -E 's/qt6-static-(.+)-${{ matrix.platform }}.tar.gz/\1/')
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Qt6 version from artifact: $VERSION"
+      shell: bash
 
     - name: Download Xapian artifacts
       uses: dawidd6/action-download-artifact@v6
       with:
         workflow: build-xapian.yml
-        name: xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}
+        name: xapian-static-.*-${{ matrix.platform }}
+        name_is_regexp: true
         path: xapian-artifact
         skip_unpack: false
+
+    - name: Extract Xapian version from artifact
+      id: xapian-version
+      run: |
+        cd xapian-artifact
+        if [ "${{ matrix.platform }}" == "windows" ]; then
+          FILENAME=$(ls xapian-static-*.zip | head -1)
+          # Extract version from filename like: xapian-static-1.4.29-windows.zip
+          VERSION=$(echo "$FILENAME" | sed -E 's/xapian-static-(.+)-${{ matrix.platform }}.zip/\1/')
+        else
+          FILENAME=$(ls xapian-static-*.tar.gz | head -1)
+          # Extract version from filename like: xapian-static-1.4.29-linux.tar.gz
+          VERSION=$(echo "$FILENAME" | sed -E 's/xapian-static-(.+)-${{ matrix.platform }}.tar.gz/\1/')
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Xapian version from artifact: $VERSION"
+      shell: bash
 
     - name: Extract LLVM artifacts (Linux/macOS)
       if: matrix.platform != 'windows'
