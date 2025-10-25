@@ -130,16 +130,13 @@ jobs:
     - name: Extract LLVM version from artifact
       id: llvm-version
       run: |
+        ls
         cd llvm-artifact
-        if [ "${{ matrix.platform }}" == "windows" ]; then
-          FILENAME=$(ls llvm-static-*.zip | head -1)
-          # Extract version from filename like: llvm-static-19.1.6-windows.zip
-          VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}.zip/\1/')
-        else
-          FILENAME=$(ls llvm-static-*.tar.gz | head -1)
-          # Extract version from filename like: llvm-static-19.1.6-linux.tar.gz
-          VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}.tar.gz/\1/')
-        fi
+        ls
+        FILENAME=$(ls llvm-static-*.zip | head -1)
+        echo "filename=$FILENAME"
+        # Extract version from filename like: llvm-static-19.1.6-windows.zip
+        VERSION=$(echo "$FILENAME" | sed -E 's/llvm-static-(.+)-${{ matrix.platform }}.zip/\1/')        
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "LLVM version from artifact: $VERSION"
       shell: bash
