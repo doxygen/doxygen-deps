@@ -3,6 +3,9 @@ name: Build Doxygen
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   BUILD_TYPE: Release
 
