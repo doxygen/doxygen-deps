@@ -285,7 +285,11 @@ jobs:
       if: matrix.platform == 'linux'
       run: |
         mkdir -p doxygen/build
-        cd doxygen/build        
+        cd doxygen/build       
+        echo "==== xapian-install:"
+        ls ${{ github.workspace }}/xapian-install
+        echo "==== xapian-install/cmake:"
+        ls ${{ github.workspace }}/xapian-install/cmake
         cmake .. -G Ninja \
           -DCMAKE_BUILD_TYPE="${{ env.BUILD_TYPE }}" \
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/doxygen-install" \
