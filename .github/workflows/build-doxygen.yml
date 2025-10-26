@@ -291,6 +291,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/doxygen-install" \
           -DXAPIAN_LIBRARIES="${{ github.workspace }}/xapian-install/lib/libxapian.a" \
           -DXAPIAN_INCLUDE_DIR="${{ github.workspace }}/xapian-install/include" \
+          -DXAPIAN_DIR="${{ github.workspace }}/xapian-install/cmake" \
           -DUUID_LIB="/lib/x86_64-linux-gnu/libuuid.a" \
           -DLLVM_DIR="${{ github.workspace }}/llvm-install/lib/cmake/llvm" \
           -DClang_DIR="${{ github.workspace }}/llvm-install/lib/cmake/clang" \
@@ -301,6 +302,7 @@ jobs:
           -Dstatic_libxapian=YES \          
           -Dforce_qt=Qt6 \
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
+        echo "=== done ==="
       shell: bash
 
     - name: Configure CMake for Doxygen (macOS)
