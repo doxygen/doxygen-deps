@@ -307,7 +307,7 @@ jobs:
           -Dbuild_wizard=YES \
           -Duse_libclang=YES \
           -Dstatic_libclang=YES \
-          -Dstatic_libxapian=YES \          
+          -Dstatic_libxapian=YES \
           -Dforce_qt=Qt6 \
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
         echo "=== done ==="
