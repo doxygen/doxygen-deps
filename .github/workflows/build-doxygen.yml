@@ -299,6 +299,10 @@ jobs:
           -DUUID_LIB="/lib/x86_64-linux-gnu/libuuid.a" \
           -DLLVM_DIR="${{ github.workspace }}/llvm-install/lib/cmake/llvm" \
           -DClang_DIR="${{ github.workspace }}/llvm-install/lib/cmake/clang" \
+          -DQt6_DIR="${{ github.workspace }}/qt6-install/lib/cmake/Qt6" \
+          -DQt6Core_DIR="${{ github.workspace }}/qt6-install/lib/cmake/Qt6Core" \
+          -DQt6Gui_DIR="${{ github.workspace }}/qt6-install/lib/cmake/Qt6Gui" \
+          -DQt6Widgets_DIR="${{ github.workspace }}/qt6-install/lib/cmake/Qt6Widgets" \
           -Dbuild_search=YES \
           -Dbuild_wizard=YES \
           -Duse_libclang=YES \
