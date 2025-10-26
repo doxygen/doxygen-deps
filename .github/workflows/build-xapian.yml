@@ -189,6 +189,7 @@ jobs:
             find "$(cygpath "${{ github.workspace }}")/xapian-install" -name "*.lib" | head -10
           else
             find ${{ github.workspace }}/xapian-install -name "*.a" | head -10
+            nm -C ${{ github.workspace }}/xapian-install/lib/libxapian.a  | grep " U " | sort | uniq
           fi
         shell: bash
 
