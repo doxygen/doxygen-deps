@@ -71,7 +71,8 @@ jobs:
           libxkbcommon-dev \
           libxkbcommon-x11-dev \
           libgl1-mesa-dev \
-          libglu1-mesa-dev
+          libglu1-mesa-dev \
+          uuid-dev
       shell: bash
 
     - name: Install dependencies (Windows)
@@ -88,6 +89,20 @@ jobs:
         echo "$(brew --prefix bison)/bin" >> $GITHUB_PATH
         echo "$(brew --prefix flex)/bin" >> $GITHUB_PATH
       shell: bash
+
+    - name: Download zlib (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        curl -L -o zlib.tgz https://zlib.net/zlib-1.3.1.tar.gz
+        tar zxvf zlib.tgz
+    
+    - name: Build zlib (Windows)
+      if: matrix.platform == 'windows'
+      shell: cmd
+      run: |
+        cd zlib-1.3.1
+        @rem nmake -f win32\Makefile.msc LOC="-MT" all
+        nmake -f win32\Makefile.msc LOC="-MT" zlib.lib
 
     - name: Get latest Doxygen release tag
       id: doxygen-version
@@ -295,6 +310,8 @@ jobs:
               -Duse_libclang=YES ^
               -Dstatic_libclang=YES ^
               -Dforce_qt=Qt6 ^
+              -DZLIB_LIBRARY={{ github.workspace }}\zlib-1.3.1\zlib.lib ^
+              -DZLIB_INCLUDE_DIR={{ github.workspace }}\zlib-1.3.1\include ^             
               -DCMAKE_PREFIX_PATH="${{ github.workspace }}\llvm-install;${{ github.workspace }}\qt6-install;${{ github.workspace }}\xapian-install"
       shell: cmd
 
