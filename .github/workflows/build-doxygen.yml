@@ -286,13 +286,14 @@ jobs:
       run: |
         mkdir -p doxygen/build
         cd doxygen/build        
-        cmake .. \
-          -G Ninja \
+        cmake .. -G Ninja \
           -DCMAKE_BUILD_TYPE="${{ env.BUILD_TYPE }}" \
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/doxygen-install" \
           -DXAPIAN_LIBRARIES="${{ github.workspace }}/xapian-install/lib/libxapian.a" \
           -DXAPIAN_INCLUDE_DIR="${{ github.workspace }}/xapian-install/include" \
           -DUUID_LIB="/lib/x86_64-linux-gnu/libuuid.a" \
+          -DLLVM_DIR="${{ github.workspace }}/llvm-install/lib/cmake/llvm" \
+          -DClang_DIR="${{ github.workspace }}/llvm-install/lib/cmake/clang" \
           -Dbuild_search=YES \
           -Dbuild_wizard=YES \
           -Duse_libclang=YES \
@@ -307,8 +308,7 @@ jobs:
       run: |
         mkdir -p doxygen/build
         cd doxygen/build        
-        cmake .. \
-          -G Ninja \
+        cmake .. -G Ninja \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/doxygen-install \
           -Dbuild_search=YES \
