@@ -159,7 +159,8 @@ jobs:
       if: steps.cache-doxygen-source.outputs.cache-hit != 'true'
       run: |
         echo "Downloading Doxygen ${{ steps.doxygen-version.outputs.tag }}"
-        git clone --depth 1 --branch ${{ steps.doxygen-version.outputs.tag }} https://github.com/doxygen/doxygen.git
+        #git clone --depth 1 --branch ${{ steps.doxygen-version.outputs.tag }} https://github.com/doxygen/doxygen.git
+        git clone --depth 1 --branch master https://github.com/doxygen/doxygen.git
         if [ ! -d "doxygen" ]; then
           echo "Error: Doxygen source download failed or directory structure is incorrect"
           exit 1
