@@ -90,6 +90,10 @@ jobs:
         echo "$(brew --prefix flex)/bin" >> $GITHUB_PATH
       shell: bash
 
+    - name: Set up MSVC dev command prompt (Windows)
+      if: matrix.platform == 'windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
     - name: Download zlib (Windows)
       if: matrix.platform == 'windows'
       run: |
@@ -275,10 +279,6 @@ jobs:
         # Extract the zip archive to the install directory
         Expand-Archive -Path "xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../../xapian-install"
       shell: pwsh
-
-    - name: Set up MSVC dev command prompt (Windows)
-      if: matrix.platform == 'windows'
-      uses: ilammy/msvc-dev-cmd@v1
 
     - name: Configure CMake for Doxygen (Linux/macOS)
       if: matrix.platform != 'windows'
