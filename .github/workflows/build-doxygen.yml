@@ -289,7 +289,7 @@ jobs:
         echo "==== xapian-install:"
         ls ${{ github.workspace }}/xapian-install
         echo "==== xapian-install/cmake:"
-        ls ${{ github.workspace }}/xapian-install/cmake
+        ls ${{ github.workspace }}/xapian-install/lib/cmake/xapian
         cmake .. -G Ninja \
           -DCMAKE_BUILD_TYPE="${{ env.BUILD_TYPE }}" \
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/doxygen-install" \
