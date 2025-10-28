@@ -109,8 +109,11 @@ jobs:
         run: |
           VERSION="${{ steps.xapian-version.outputs.version }}"
           echo "Downloading Xapian $VERSION"
+          mkdir xapian
+          cd xapian
           wget https://oligarchy.co.uk/xapian/$VERSION/xapian-core-$VERSION.tar.xz
           tar -Jxf xapian-core-$VERSION.tar.xz
+          rm xapian-core-$VERSION.tar.xz
           echo "Xapian source downloaded successfully"
         shell: bash
 
@@ -118,7 +121,7 @@ jobs:
         if: matrix.platform != 'windows'
         run: |
           VERSION="${{ steps.xapian-version.outputs.version }}"
-          cd xapian-core-$VERSION
+          cd xapian/xapian-core-$VERSION
           ./configure \
             --prefix=${{ github.workspace }}/xapian-install \
             --enable-static=yes \
@@ -131,7 +134,7 @@ jobs:
         if: matrix.platform == 'windows'
         run: |
           VERSION="${{ steps.xapian-version.outputs.version }}"
-          cd xapian-core-$VERSION
+          cd xapian/xapian-core-$VERSION
           cat <<- 'EOF' > run_me.sh
           export CC="cl -nologo"
           export CXX="./compile cl -nologo"
@@ -139,8 +142,8 @@ jobs:
           export AR="lib"
           export LD="link"
           export NM="dumpbin"
-          export CPPFLAGS="-I../zlib-1.3.1"
-          export LDFLAGS="-I../zlib-1.3.1"
+          export CPPFLAGS="-I../../zlib-1.3.1"
+          export LDFLAGS="-I../../zlib-1.3.1"
           export PREFIX_UNIX="$(cygpath $PREFIX)"
           echo "prefix=$PREFIX_UNIX"
           ./configure --enable-static=yes --enable-shared=no --prefix=$PREFIX_UNIX
@@ -159,9 +162,9 @@ jobs:
         run: |
           @echo on
           set VERSION=${{ steps.xapian-version.outputs.version }}
-          cd xapian-core-%VERSION%   
+          cd xapian\xapian-core-%VERSION%   
           set PATH=C:\msys64\usr\bin;%PATH%
-          set LIB=..\zlib-1.3.1;%LIB%
+          set LIB=..\..\zlib-1.3.1;%LIB%
           set PREFIX=${{ github.workspace }}\xapian-install
           set MSYS2_PATH_TYPE=inherit
           bash -c "./run_me.sh"
@@ -170,21 +173,15 @@ jobs:
         if: matrix.platform != 'windows'
         run: |
           VERSION="${{ steps.xapian-version.outputs.version }}"
-          cd xapian-core-$VERSION
+          cd xapian/xapian-core-$VERSION
           make
-        shell: bash
-
-      - name: Install Xapian (Linux/macOS)
-        if: matrix.platform != 'windows'
-        run: |
-          VERSION="${{ steps.xapian-version.outputs.version }}"
-          cd xapian-core-$VERSION
           make install
         shell: bash
 
       - name: Verify static build
         run: |
           echo "Checking Xapian static library..."
+          cd xapian
           if [ "${{ matrix.platform }}" == "windows" ]; then
             find "$(cygpath "${{ github.workspace }}")/xapian-install" -name "*.lib" | head -10
           else
