@@ -281,15 +281,11 @@ jobs:
         Expand-Archive -Path "xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.zip" -DestinationPath "../../xapian-install"
       shell: pwsh
 
-    - name: Configure CMake for Doxygen (Linux)
-      if: matrix.platform == 'linux'
+    - name: Configure CMake for Doxygen (Linux/macOS)
+      if: matrix.platform != 'windows'
       run: |
         mkdir -p doxygen/build
         cd doxygen/build       
-        echo "==== xapian-install:"
-        ls ${{ github.workspace }}/xapian-install
-        echo "==== xapian-install/cmake:"
-        ls ${{ github.workspace }}/xapian-install/lib/cmake/xapian
         cmake .. -G Ninja \
           -DCMAKE_BUILD_TYPE="${{ env.BUILD_TYPE }}" \
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/doxygen-install" \
@@ -313,22 +309,6 @@ jobs:
         echo "=== done ==="
       shell: bash
 
-    - name: Configure CMake for Doxygen (macOS)
-      if: matrix.platform == 'macos'
-      run: |
-        mkdir -p doxygen/build
-        cd doxygen/build        
-        cmake .. -G Ninja \
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/doxygen-install \
-          -Dbuild_search=YES \
-          -Dbuild_wizard=YES \
-          -Duse_libclang=YES \
-          -Dstatic_libclang=YES \
-          -Dforce_qt=Qt6 \
-          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
-      shell: bash
-
     - name: Configure CMake for Doxygen (Windows)
       if: matrix.platform == 'windows'
       run: |
@@ -337,13 +317,22 @@ jobs:
         cmake .. -G Ninja ^
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
               -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\doxygen-install ^
+              -DXAPIAN_LIBRARIES="${{ github.workspace }}\xapian-install\lib\libxapian.lib" ^
+              -DXAPIAN_INCLUDE_DIR="${{ github.workspace }}\xapian-install\include" ^
+              -DXAPIAN_DIR="${{ github.workspace }}\xapian-install\lib\cmake\xapian" ^
+              -DLLVM_DIR="${{ github.workspace }}\llvm-install\lib\cmake\llvm" ^
+              -DClang_DIR="${{ github.workspace }}\llvm-install\lib\cmake\clang" ^
+              -DQt6_DIR="${{ github.workspace }}\qt6-install\lib\cmake\Qt6" ^
+              -DQt6Core_DIR="${{ github.workspace }}\qt6-install\lib\cmake\Qt6Core" ^
+              -DQt6Gui_DIR="${{ github.workspace }}\qt6-install\lib\cmake\Qt6Gui" ^
+              -DQt6Widgets_DIR="${{ github.workspace }}\qt6-install\lib\cmake\Qt6Widgets" ^
+              -DZLIB_LIBRARY="${{ github.workspace }}\zlib-1.3.1\zlib.lib" ^
+              -DZLIB_INCLUDE_DIR="${{ github.workspace }}\zlib-1.3.1\include" ^             
               -Dbuild_search=YES ^
               -Dbuild_wizard=YES ^
               -Duse_libclang=YES ^
               -Dstatic_libclang=YES ^
               -Dforce_qt=Qt6 ^
-              -DZLIB_LIBRARY={{ github.workspace }}\zlib-1.3.1\zlib.lib ^
-              -DZLIB_INCLUDE_DIR={{ github.workspace }}\zlib-1.3.1\include ^             
               -DCMAKE_PREFIX_PATH="${{ github.workspace }}\llvm-install;${{ github.workspace }}\qt6-install;${{ github.workspace }}\xapian-install"
       shell: cmd
 
