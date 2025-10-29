@@ -293,6 +293,7 @@ jobs:
         if [ -d /usr/local/Cellar/ossp-uuid ]; then
            UUID_FLAG="-DUUID_LIB=`ls /usr/local/Cellar/ossp-uuid/*/lib/libuuid.a`"
         fi
+        echo "UUID_FLAG=$UUID_FLAG"
         cmake .. -G Ninja \
           -DCMAKE_BUILD_TYPE="${{ env.BUILD_TYPE }}" \
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/doxygen-install" \
@@ -320,7 +321,7 @@ jobs:
       run: |
         mkdir doxygen\build
         cd doxygen\build
-        cmake .. -G Ninja -Dbuild_search=YES -Dbuild_wizard=YES -Duse_libclang=YES -Dstatic_libclang=YES -Dforce_qt=Qt6 ^
+        cmake .. -G Ninja -Dwin_static=YES -Dbuild_search=YES -Dbuild_wizard=YES -Duse_libclang=YES -Dstatic_libclang=YES -Dforce_qt=Qt6 ^
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
               -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\doxygen-install ^
               -DXAPIAN_LIBRARIES=${{ github.workspace }}\xapian-install\lib\xapian.lib ^
