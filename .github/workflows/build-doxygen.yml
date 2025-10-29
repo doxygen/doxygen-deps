@@ -323,7 +323,7 @@ jobs:
         cmake .. -G Ninja -Dbuild_search=YES -Dbuild_wizard=YES -Duse_libclang=YES -Dstatic_libclang=YES -Dforce_qt=Qt6 ^
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
               -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\doxygen-install ^
-              -DXAPIAN_LIBRARIES=${{ github.workspace }}\xapian-install\lib\libxapian.lib ^
+              -DXAPIAN_LIBRARIES=${{ github.workspace }}\xapian-install\lib\xapian.lib ^
               -DXAPIAN_INCLUDE_DIR=${{ github.workspace }}\xapian-install\include ^
               -DXAPIAN_DIR=${{ github.workspace }}\xapian-install\lib\cmake\xapian ^
               -DLLVM_DIR=${{ github.workspace }}\llvm-install\lib\cmake\llvm ^
