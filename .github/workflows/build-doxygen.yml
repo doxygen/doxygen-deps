@@ -61,7 +61,7 @@ jobs:
           libedit-dev \
           libffi-dev \
           libxml2-dev \
-          libtinfo-dev
+          libtinfo-dev \
           flex \
           bison \
           libfontconfig1-dev \
