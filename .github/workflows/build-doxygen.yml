@@ -32,7 +32,15 @@ jobs:
           #    -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
           #    -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
           #    -DLLVM_ENABLE_ZLIB=OFF
-          - os: macos-latest
+          - os: macos-15
+            platform: macos
+            extension: ""
+            archive_format: tar.gz
+            llvm_cmake_args: >-
+              -DLLVM_ENABLE_PIC=OFF
+              -DLLVM_TARGETS_TO_BUILD="ARM"
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+          - os: macos-15-intel
             platform: macos
             extension: ""
             archive_format: tar.gz
