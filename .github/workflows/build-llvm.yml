@@ -30,13 +30,21 @@ jobs:
               -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DLLVM_ENABLE_ZLIB=OFF
-          - os: macos-latest
+          - os: macos-15
             platform: macos
             extension: ""
             archive_format: tar.gz
             cmake_args: >-
               -DLLVM_ENABLE_PIC=OFF
-              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+              -DLLVM_TARGETS_TO_BUILD="ARM"
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+          - os: macos-15-intel
+            platform: macos
+            extension: ""
+            archive_format: tar.gz
+            cmake_args: >-
+              -DLLVM_ENABLE_PIC=OFF
+              -DLLVM_TARGETS_TO_BUILD="AArch64"
               -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
     runs-on: ${{ matrix.os }}
     
@@ -118,7 +126,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: llvm-project
-        key: llvm-source-${{ steps.llvm-version.outputs.tag }}-${{ matrix.platform }}
+        key: llvm-source-${{ steps.llvm-version.outputs.tag }}-${{ matrix.os }}
 
     - name: Download LLVM source code
       if: steps.cache-llvm-source.outputs.cache-hit != 'true'
@@ -208,20 +216,20 @@ jobs:
       if: matrix.platform != 'windows'
       run: |
         cd ${{ github.workspace }}
-        tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C llvm-install .
+        tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.os }}.tar.gz -C llvm-install .
       shell: bash
       
     - name: Create build artifact (Windows)
       if: matrix.platform == 'windows'
       run: |
-        Compress-Archive -Path 'llvm-install\\*' -DestinationPath 'llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.zip' -Force
+        Compress-Archive -Path 'llvm-install\\*' -DestinationPath 'llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.os }}.zip' -Force
       shell: pwsh
       
     - name: Upload LLVM static build
       uses: actions/upload-artifact@v4
       with:
-        name: llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}
-        path: llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.platform }}.${{ matrix.archive_format }}
+        name: llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.os }}
+        path: llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.os }}.${{ matrix.archive_format }}
         retention-days: 30
 
     - name: Display build summary
