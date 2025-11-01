@@ -192,7 +192,7 @@ jobs:
       uses: dawidd6/action-download-artifact@v6
       with:
         workflow: build-llvm.yml
-        name: llvm-static-.*-${{ matrix.platform }}
+        name: llvm-static-.*-${{ matrix.os }}
         name_is_regexp: true
         path: llvm-artifact
         skip_unpack: false
@@ -211,7 +211,7 @@ jobs:
       uses: dawidd6/action-download-artifact@v6
       with:
         workflow: build-qt6.yml
-        name: qt6-static-.*-${{ matrix.platform }}
+        name: qt6-static-.*-${{ matrix.os }}
         name_is_regexp: true
         path: qt6-artifact
         skip_unpack: false
@@ -230,7 +230,7 @@ jobs:
       uses: dawidd6/action-download-artifact@v6
       with:
         workflow: build-xapian.yml
-        name: xapian-static-.*-${{ matrix.platform }}
+        name: xapian-static-.*-${{ matrix.os }}
         name_is_regexp: true
         path: xapian-artifact
         skip_unpack: false
