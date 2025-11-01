@@ -204,7 +204,7 @@ jobs:
       - name: Create build artifact (Windows)
         if: matrix.platform == 'windows'
         run: |
-          Compress-Archive -Path 'xapian-install\\*' -DestinationPath 'xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.zip' -Force
+          Compress-Archive -Path 'xapian-install\\*' -DestinationPath 'xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.os }}.zip' -Force
         shell: pwsh
 
       - name: Upload Xapian static build
