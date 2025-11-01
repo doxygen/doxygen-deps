@@ -311,7 +311,7 @@ jobs:
            UUID_FLAG="-DUUID_LIB=/lib/x86_64-linux-gnu/libuuid.a"
         fi
         if [ -d $(brew --prefix ossp-uuid) ]; then
-           UUID_FLAG="-DUUID_LIB="$(brew --prefix ossp-uuid)/lib/libuuid.a"
+           UUID_FLAG="-DUUID_LIB=$(brew --prefix ossp-uuid)/lib/libuuid.a"
         fi
         echo "UUID_FLAG=$UUID_FLAG"
         cmake .. -G Ninja \
