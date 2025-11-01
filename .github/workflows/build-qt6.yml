@@ -22,7 +22,10 @@ jobs:
           - os: windows-latest
             platform: windows
             archive_format: zip
-          - os: macos-latest
+          - os: macos-15
+            platform: macos
+            archive_format: tar.gz
+          - os: macos-15-intel
             platform: macos
             archive_format: tar.gz
     runs-on: ${{ matrix.os }}
@@ -95,7 +98,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: qt6-source
-        key: qt6-source-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}
+        key: qt6-source-${{ steps.qt6-version.outputs.version }}-${{ matrix.os }}
 
     - name: Download Qt6 source code
       if: steps.cache-qt6-source.outputs.cache-hit != 'true'
@@ -192,20 +195,20 @@ jobs:
       if: matrix.platform != 'windows'
       run: |
         cd ${{ github.workspace }}
-        tar -czf qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C qt6-install .
+        tar -czf qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.os }}.tar.gz -C qt6-install .
       shell: bash
       
     - name: Create build artifact (Windows)
       if: matrix.platform == 'windows'
       run: |
-        Compress-Archive -Path 'qt6-install\\*' -DestinationPath 'qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.zip' -Force
+        Compress-Archive -Path 'qt6-install\\*' -DestinationPath 'qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.os }}.zip' -Force
       shell: pwsh
       
     - name: Upload Qt6 static build
       uses: actions/upload-artifact@v4
       with:
-        name: qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}
-        path: qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.platform }}.${{ matrix.archive_format }}
+        name: qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.os }}
+        path: qt6-static-${{ steps.qt6-version.outputs.version }}-${{ matrix.os }}.${{ matrix.archive_format }}
         retention-days: 30
 
     - name: Display build summary
