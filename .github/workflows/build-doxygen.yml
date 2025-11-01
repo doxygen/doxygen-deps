@@ -108,9 +108,6 @@ jobs:
         echo "$(brew --prefix bison)/bin" >> $GITHUB_PATH
         echo "$(brew --prefix flex)/bin" >> $GITHUB_PATH
         echo "==== /opt/homebrew/opt/ossp-uuid/lib"
-        ls /opt/homebrew/opt/ossp-uuid/lib
-        ls -al /opt/homebrew/opt/ossp-uuid/lib/libuuid.a
-        exit 1
       shell: bash
 
     - name: Get latest LLVM release tag
@@ -435,8 +432,8 @@ jobs:
         if [ -d /lib/x86_64-linux-gnu ]; then
            UUID_FLAG="-DUUID_LIB=/lib/x86_64-linux-gnu/libuuid.a"
         fi
-        if [ -d /usr/local/Cellar/ossp-uuid ]; then
-           UUID_FLAG="-DUUID_LIB=`ls /usr/local/Cellar/ossp-uuid/*/lib/libuuid.a`"
+        if [ -d opt/homebrew/opt/ossp-uuid ]; then
+           UUID_FLAG="-DUUID_LIB=/opt/homebrew/opt/ossp-uuid/lib/libuuid.a"
         fi
         echo "UUID_FLAG=$UUID_FLAG"
         cmake .. -G Ninja \
