@@ -168,15 +168,15 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
       shell: bash
 
-    - name: Cache Doxygen source
-      id: cache-doxygen-source
-      uses: actions/cache@v4
-      with:
-        path: doxygen
-        key: doxygen-source-${{ steps.doxygen-version.outputs.tag }}-${{ matrix.os }}
+    #- name: Cache Doxygen source
+    #  id: cache-doxygen-source
+    #  uses: actions/cache@v4
+    #  with:
+    #    path: doxygen
+    #    key: doxygen-source-${{ steps.doxygen-version.outputs.tag }}-${{ matrix.os }}
 
     - name: Download Doxygen source code
-      if: steps.cache-doxygen-source.outputs.cache-hit != 'true'
+      #if: steps.cache-doxygen-source.outputs.cache-hit != 'true'
       run: |
         echo "Downloading Doxygen ${{ steps.doxygen-version.outputs.tag }}"
         #git clone --depth 1 --branch ${{ steps.doxygen-version.outputs.tag }} https://github.com/doxygen/doxygen.git
