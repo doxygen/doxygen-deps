@@ -15,23 +15,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          #- os: ubuntu-24.04
-          #  platform: linux
-          #  extension: ""
-          #  archive_format: tar.gz
-          #  llvm_cmake_args: >-
-          #    -DLLVM_ENABLE_PIC=OFF
-          #    -DLLVM_ENABLE_TERMINFO=OFF
-          #    -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
-          #- os: windows-latest
-          #  platform: windows
-          #  extension: .exe
-          #  archive_format: zip
-          #  llvm_cmake_args: >-
-          #    -DLLVM_USE_CRT_RELEASE=MT
-          #    -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
-          #    -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-          #    -DLLVM_ENABLE_ZLIB=OFF
+          - os: ubuntu-24.04
+            platform: linux
+            extension: ""
+            archive_format: tar.gz
+          - os: windows-latest
+            platform: windows
+            extension: .exe
+            archive_format: zip
           - os: macos-15
             platform: macos
             extension: ""
