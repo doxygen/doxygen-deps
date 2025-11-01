@@ -107,12 +107,10 @@ jobs:
         # make sure flex and bison from brew are found and not the one from the system.
         echo "$(brew --prefix bison)/bin" >> $GITHUB_PATH
         echo "$(brew --prefix flex)/bin" >> $GITHUB_PATH
-        echo "==== /usr/local"
-        ls /usr/local
-        echo "==== /usr/local/Cellar"
-        ls /usr/local/Cellar
-        echo "==== /usr/local/Cellar/ossp-uuid"
-        ls /usr/local/Cellar/ossp-uuid
+        echo "==== /opt/homebrew/opt"
+        ls /opt/homebrew/opt
+        echo "==== /opt/homebrew/opt/ossp-uuid"
+        ls /opt/homebrew/opt/ossp-uuid
         exit 1
       shell: bash
 
