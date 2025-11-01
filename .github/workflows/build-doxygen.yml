@@ -314,7 +314,7 @@ jobs:
            UUID_FLAG="-DUUID_LIB=$(brew --prefix ossp-uuid)/lib/libuuid.a"
         fi
         echo "UUID_FLAG=$UUID_FLAG"
-        cmake .. -G Ninja \
+        cmake .. -G "Unix Makefiles" \
           -DCMAKE_BUILD_TYPE="${{ env.BUILD_TYPE }}" \
           -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/doxygen-install" \
           -DXAPIAN_LIBRARIES="${{ github.workspace }}/xapian-install/lib/libxapian.a" \
@@ -364,9 +364,9 @@ jobs:
       run: |
         cd doxygen/build
         if [ "${{ matrix.platform }}" == "macos" ]; then
-          ninja -j$(sysctl -n hw.logicalcpu)
+          make -j$(sysctl -n hw.logicalcpu)
         else
-          ninja -j$(nproc)
+          make -j$(nproc)
         fi
       shell: bash
 
@@ -374,7 +374,7 @@ jobs:
       if: matrix.platform != 'windows'
       run: |
         cd doxygen/build
-        ninja install
+        make install
       shell: bash
 
     - name: Verify Doxygen build
