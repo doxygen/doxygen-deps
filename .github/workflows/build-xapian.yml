@@ -21,7 +21,11 @@ jobs:
             platform: windows
             archive_format: zip
             configure_args: ""
-          - os: macos-latest
+          - os: macos-15
+            platform: macos
+            archive_format: tar.gz
+            configure_args: ""
+          - os: macos-15-intel
             platform: macos
             archive_format: tar.gz
             configure_args: ""
@@ -194,7 +198,7 @@ jobs:
         if: matrix.platform != 'windows'
         run: |
           cd ${{ github.workspace }}
-          tar -czf xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C xapian-install .
+          tar -czf xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.os }}.tar.gz -C xapian-install .
         shell: bash
 
       - name: Create build artifact (Windows)
@@ -206,8 +210,8 @@ jobs:
       - name: Upload Xapian static build
         uses: actions/upload-artifact@v4
         with:
-          name: xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}
-          path: xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.platform }}.${{ matrix.archive_format }}
+          name: xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.os }}
+          path: xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.os }}.${{ matrix.archive_format }}
           retention-days: 30
 
       - name: Display build summary
