@@ -106,7 +106,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: xapian
-          key: xapian-core-${{ steps.xapian-version.outputs.version }}.tar.xz
+          key: xapian-core-${{ steps.xapian-version.outputs.version }}-${{ matrix.os }}.tar.xz
 
       - name: Download Xapian source code
         if: steps.cache-xapian-source.outputs.cache-hit != 'true'
