@@ -171,12 +171,8 @@ jobs:
           -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
           -DLLVM_PARALLEL_LINK_JOBS=1 \
           ${{ matrix.cmake_args }}
-          if [ "${{ matrix.platform }}" == "macos" ]; then
-            make -j$(sysctl -n hw.logicalcpu)
-          else
-            make -j$(nproc)
-          fi
-          make install
+          cmake --build . --parallel
+          cmake --install .
       shell: bash
 
     - name: Set up MSVC dev command prompt (Windows)
@@ -210,8 +206,8 @@ jobs:
           -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
           -DLLVM_PARALLEL_LINK_JOBS=1 \
           ${{ matrix.cmake_args }}
-        nmake -j${NUMBER_OF_PROCESSORS:-4}
-        nmake install
+        cmake --build . --parallel
+        cmake --install .
       shell: cmd
 
     - name: Verify static build
