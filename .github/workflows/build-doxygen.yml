@@ -292,18 +292,12 @@ jobs:
         Expand-Archive -Path "xapian-static-${{ steps.xapian-version.outputs.version }}-${{ matrix.os }}.zip" -DestinationPath "../../xapian-install"
       shell: pwsh
 
-    - name: Configure CMake for Doxygen (Linux/macOS)
-      if: matrix.platform != 'windows'
+    - name: Configure CMake for Doxygen (Linux)
+      if: matrix.platform == 'linux'
       run: |
         mkdir -p doxygen/build
         cd doxygen/build
-        UUID_FLAG=""
-        if [ -d /lib/x86_64-linux-gnu ]; then
-           UUID_FLAG="-DUUID_LIB=/lib/x86_64-linux-gnu/libuuid.a"
-        fi
-        if [ -d $(brew --prefix ossp-uuid) ]; then
-           UUID_FLAG="-DUUID_LIB=$(brew --prefix ossp-uuid)/lib/libuuid.a"
-        fi
+        UUID_FLAG="-DUUID_LIB=/lib/x86_64-linux-gnu/libuuid.a"
         echo "UUID_FLAG=$UUID_FLAG"
         cmake .. -G "Unix Makefiles" \
           -DCMAKE_BUILD_TYPE="${{ env.BUILD_TYPE }}" \
@@ -325,7 +319,40 @@ jobs:
           -Dforce_qt=Qt6 \
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
         echo "=== done ==="
+        make -j$(nproc)
+        make install
       shell: bash
+
+    - name: Configure CMake for Doxygen (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        mkdir -p doxygen/build
+        cd doxygen/build
+        UUID_FLAG="-DUUID_LIB=$(brew --prefix ossp-uuid)/lib/libuuid.a"
+        echo "UUID_FLAG=$UUID_FLAG"
+        cmake .. -G "Unix Makefiles" \
+          -DCMAKE_BUILD_TYPE="${{ env.BUILD_TYPE }}" \
+          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/doxygen-install" \
+          -DXAPIAN_LIBRARIES="${{ github.workspace }}/xapian-install/lib/libxapian.a" \
+          -DXAPIAN_INCLUDE_DIR="${{ github.workspace }}/xapian-install/include" \
+          -DXAPIAN_DIR="${{ github.workspace }}/xapian-install/lib/cmake/xapian" $UUID_FLAG \
+          -DLLVM_DIR="${{ github.workspace }}/llvm-install/lib/cmake/llvm" \
+          -DClang_DIR="${{ github.workspace }}/llvm-install/lib/cmake/clang" \
+          -DQt6_DIR="${{ github.workspace }}/qt6-install/lib/cmake/Qt6" \
+          -DQt6Core_DIR="${{ github.workspace }}/qt6-install/lib/cmake/Qt6Core" \
+          -DQt6Gui_DIR="${{ github.workspace }}/qt6-install/lib/cmake/Qt6Gui" \
+          -DQt6Widgets_DIR="${{ github.workspace }}/qt6-install/lib/cmake/Qt6Widgets" \
+          -Dbuild_search=YES \
+          -Dbuild_wizard=YES \
+          -Duse_libclang=YES \
+          -Dstatic_libclang=YES \
+          -Dstatic_libxapian=YES \
+          -Dforce_qt=Qt6 \
+          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
+        echo "=== done ==="
+        make -j$(sysctl -n hw.logicalcpu)
+        make install
+      shell: bash      
 
     - name: Configure CMake for Doxygen (Windows)
       if: matrix.platform == 'windows'
@@ -350,24 +377,6 @@ jobs:
         nmake install
       shell: cmd
 
-    - name: Build Doxygen (Linux/macOS)
-      if: matrix.platform != 'windows'
-      run: |
-        cd doxygen/build
-        if [ "${{ matrix.platform }}" == "macos" ]; then
-          make -j$(sysctl -n hw.logicalcpu)
-        else
-          make -j$(nproc)
-        fi
-      shell: bash
-
-    - name: Install Doxygen (Linux/macOS)
-      if: matrix.platform != 'windows'
-      run: |
-        cd doxygen/build
-        make install
-      shell: bash
-
     - name: Verify Doxygen build
       run: |
         echo "Checking Doxygen binary..."
@@ -385,20 +394,20 @@ jobs:
       if: matrix.platform != 'windows'
       run: |
         cd ${{ github.workspace }}
-        tar -czf doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.platform }}.tar.gz -C doxygen-install .
+        tar -czf doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}.tar.gz -C doxygen-install .
       shell: bash
       
     - name: Create build artifact (Windows)
       if: matrix.platform == 'windows'
       run: |
-        Compress-Archive -Path 'doxygen-install\\*' -DestinationPath 'doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.platform }}.zip' -Force
+        Compress-Archive -Path 'doxygen-install\\*' -DestinationPath 'doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}.zip' -Force
       shell: pwsh
       
     - name: Upload Doxygen build
       uses: actions/upload-artifact@v4
       with:
-        name: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.platform }}
-        path: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.platform }}.${{ matrix.archive_format }}
+        name: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}
+        path: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}.${{ matrix.archive_format }}
         retention-days: 30
 
     - name: Display build summary
