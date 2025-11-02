@@ -13,14 +13,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04
-            platform: linux
-            extension: ""
-            archive_format: tar.gz
-            cmake_args: >-
-              -DLLVM_ENABLE_PIC=OFF
-              -DLLVM_ENABLE_TERMINFO=OFF
-              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+          #- os: ubuntu-24.04
+          #  platform: linux
+          #  extension: ""
+          #  archive_format: tar.gz
+          #  cmake_args: >-
+          #    -DLLVM_ENABLE_PIC=OFF
+          #    -DLLVM_ENABLE_TERMINFO=OFF
+          #    -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
           - os: windows-latest
             platform: windows
             extension: .exe
@@ -30,22 +30,22 @@ jobs:
               -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DLLVM_ENABLE_ZLIB=OFF
-          - os: macos-15
-            platform: macos
-            extension: ""
-            archive_format: tar.gz
-            cmake_args: >-
-              -DLLVM_ENABLE_PIC=OFF
-              -DLLVM_TARGETS_TO_BUILD="ARM"
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
-          - os: macos-15-intel
-            platform: macos
-            extension: ""
-            archive_format: tar.gz
-            cmake_args: >-
-              -DLLVM_ENABLE_PIC=OFF
-              -DLLVM_TARGETS_TO_BUILD="AArch64"
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+          #- os: macos-15
+          #  platform: macos
+          #  extension: ""
+          #  archive_format: tar.gz
+          #  cmake_args: >-
+          #    -DLLVM_ENABLE_PIC=OFF
+          #    -DLLVM_TARGETS_TO_BUILD="ARM"
+          #    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+          #- os: macos-15-intel
+          #  platform: macos
+          #  extension: ""
+          #  archive_format: tar.gz
+          #  cmake_args: >-
+          #    -DLLVM_ENABLE_PIC=OFF
+          #    -DLLVM_TARGETS_TO_BUILD="AArch64"
+          #    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
     runs-on: ${{ matrix.os }}
     
     steps:
@@ -140,18 +140,9 @@ jobs:
         echo "LLVM source downloaded successfully"
       shell: bash
 
-    - name: Configure CMake for LLVM
-      env:
-        WORKSPACE: ${{ github.workspace }}
+    - name: Configure CMake for LLVM (Linux/macOS)
+      if: matrix.platform != 'windows'
       run: |
-        if command -v cygpath >/dev/null 2>&1; then
-          export WORKSPACE_UNIX=$(cygpath -u "$WORKSPACE")
-          echo "Converted with cygpath: $WORKSPACE_UNIX"
-        else
-          # fallback to simple replace
-          export WORKSPACE_UNIX=${WORKSPACE//\\//}
-          echo "cygpath not found; fallback: $WORKSPACE_UNIX"
-        fi      
         # Verify LLVM source directory exists
         if [ ! -d "llvm-project/llvm" ]; then
           echo "Error: LLVM source directory not found"
@@ -160,9 +151,9 @@ jobs:
         mkdir -p llvm-project/build
         cd llvm-project/build
         cmake ../llvm \
-          -G Ninja \
+          -G "Unix Makefiles" \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_INSTALL_PREFIX=$WORKSPACE_UNIX/llvm-install \
+          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/llvm-install \
           -DLLVM_ENABLE_PROJECTS="clang;lld" \
           -DLIBCLANG_BUILD_STATIC=ON \
           -DLLVM_ENABLE_OCAMLDOC=OFF \
@@ -180,25 +171,48 @@ jobs:
           -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
           -DLLVM_PARALLEL_LINK_JOBS=1 \
           ${{ matrix.cmake_args }}
+          if [ "${{ matrix.platform }}" == "macos" ]; then
+            make -j$(sysctl -n hw.logicalcpu)
+          else
+            make -j$(nproc)
+          fi
+          make install
       shell: bash
 
-    - name: Build LLVM
-      run: |
-        cd llvm-project/build
-        if [ "${{ matrix.platform }}" == "windows" ]; then
-          ninja -j${NUMBER_OF_PROCESSORS:-4}
-        elif [ "${{ matrix.platform }}" == "macos" ]; then
-          ninja -j$(sysctl -n hw.logicalcpu)
-        else
-          ninja -j$(nproc)
-        fi
-      shell: bash
+    - name: Set up MSVC dev command prompt (Windows)
+      if: matrix.platform == 'windows'
+      uses: ilammy/msvc-dev-cmd@v1         
 
-    - name: Install LLVM
+    - name: Configure CMake for LLVM (Windows)
+      if: matrix.platform == 'windows'
       run: |
-        cd llvm-project/build
-        ninja install
-      shell: bash
+        mkdir llvm-project
+        mkdir llvm-project\build
+        cd llvm-project\build
+        cmake ..\llvm \
+          -G "NMake Makefiles" \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\llvm-install \
+          -DLLVM_ENABLE_PROJECTS="clang;lld" \
+          -DLIBCLANG_BUILD_STATIC=ON \
+          -DLLVM_ENABLE_OCAMLDOC=OFF \
+          -DLLVM_ENABLE_LTO=OFF \
+          -DLLVM_ENABLE_WARNINGS=OFF \
+          -DLLVM_ENABLE_Z3_SOLVER=OFF \
+          -DLLVM_ENABLE_ZSTD=OFF \
+          -DLLVM_ENABLE_BINDING=OFF \
+          -DLLVM_ENABLE_LIBXML2=OFF \
+          -DLLVM_ENABLE_LIBEDIT=OFF \
+          -DLLVM_ENABLE_ASSERTIONS=OFF \
+          -DLLVM_INCLUDE_BENCHMARKS=OFF \
+          -DLLVM_INCLUDE_TESTS=OFF \
+          -DLLVM_INCLUDE_EXAMPLES=OFF \
+          -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+          -DLLVM_PARALLEL_LINK_JOBS=1 \
+          ${{ matrix.cmake_args }}
+        nmake -j${NUMBER_OF_PROCESSORS:-4}
+        nmake install
+      shell: cmd
 
     - name: Verify static build
       run: |
