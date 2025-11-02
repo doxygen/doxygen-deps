@@ -181,7 +181,7 @@ jobs:
         mkdir llvm-project\build
         cd llvm-project\build
         cmake ..\llvm ^
-          -G "NMake Makefiles" ^
+          -G Ninja ^
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
           -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\llvm-install ^
           -DLLVM_ENABLE_PROJECTS="clang;lld" ^
