@@ -395,6 +395,15 @@ jobs:
         ${{ github.workspace }}\doxygen-install\bin\doxygen${{ matrix.extension }} --version || echo "Note: doxygen version check failed (may be expected on some platforms)"
       shell: cmd      
 
+    - name: Prepare binaries (Windows)
+      if: matrix.platform == 'windows'
+      run: |      
+        copy ${{ github.workspace }}\llvm-install\bin\libclang.dll ${{ github.workspace }}\doxygen-install\bin
+        editbin ${{ github.workspace }}\doxygen-install\bin\doxygen.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
+        editbin ${{ github.workspace }}\doxygen-install\bin\doxyindexer.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
+        editbin ${{ github.workspace }}\doxygen-install\bin\doxysearch.cgi.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1        
+      shell: cmd
+      
     - name: Create build artifact (Linux/macOS)
       if: matrix.platform != 'windows'
       run: |
