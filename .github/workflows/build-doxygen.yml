@@ -382,8 +382,7 @@ jobs:
       if: matrix.platform != 'windows'
       run: |
         echo "Checking Doxygen binary..."
-        ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}
-        
+        ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}        
         # Try to run doxygen to verify it works
         ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }} --version || echo "Note: doxygen version check failed (may be expected on some platforms)"
       shell: bash
@@ -393,8 +392,6 @@ jobs:
       run: |
         echo "Checking Doxygen binary..."
         ls -lh ${{ github.workspace }}\doxygen-install\bin\doxygen${{ matrix.extension }}
-        
-        # Try to run doxygen to verify it works
         ${{ github.workspace }}\doxygen-install\bin\doxygen${{ matrix.extension }} --version || echo "Note: doxygen version check failed (may be expected on some platforms)"
       shell: cmd      
 
