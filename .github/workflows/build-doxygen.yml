@@ -377,18 +377,25 @@ jobs:
         nmake install
       shell: cmd
 
-    - name: Verify Doxygen build
+    - name: Verify Doxygen build (Linux/macOS)
+      if: matrix.platform != 'windows'
       run: |
         echo "Checking Doxygen binary..."
-        if [ "${{ matrix.platform }}" == "windows" ]; then
-          ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}
-        else
-          ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}
-        fi
+        ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}
         
         # Try to run doxygen to verify it works
         ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }} --version || echo "Note: doxygen version check failed (may be expected on some platforms)"
       shell: bash
+
+    - name: Verify Doxygen build (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        echo "Checking Doxygen binary..."
+        ls -lh ${{ github.workspace }}\doxygen-install\bin\doxygen${{ matrix.extension }}
+        
+        # Try to run doxygen to verify it works
+        ${{ github.workspace }}\doxygen-install\bin\doxygen${{ matrix.extension }} --version || echo "Note: doxygen version check failed (may be expected on some platforms)"
+      shell: cmd      
 
     - name: Create build artifact (Linux/macOS)
       if: matrix.platform != 'windows'
