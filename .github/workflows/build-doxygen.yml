@@ -367,6 +367,7 @@ jobs:
               -DXAPIAN_DIR=${{ github.workspace }}\xapian-install\lib\cmake\xapian ^
               -DLLVM_DIR=${{ github.workspace }}\llvm-install\lib\cmake\llvm ^
               -DClang_DIR=${{ github.workspace }}\llvm-install\lib\cmake\clang ^
+              -DCLANG_LIBS=${{ github.workspace }}\llvm-install\lib\libclang.lib ^
               -DQt6_DIR=${{ github.workspace }}\qt6-install\lib\cmake\Qt6 ^
               -DQt6Core_DIR=${{ github.workspace }}\qt6-install\lib\cmake\Qt6Core ^
               -DQt6Gui_DIR=${{ github.workspace }}\qt6-install\lib\cmake\Qt6Gui ^
