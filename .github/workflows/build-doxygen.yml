@@ -109,7 +109,7 @@ jobs:
       if: matrix.platform == 'windows'
       run: |
         curl -L -o htmlhelp.exe http://web.archive.org/web/20160201063255/http://download.microsoft.com/download/0/A/9/0A939EF6-E31C-430F-A3DF-DFAE7960D564/htmlhelp.exe
-        runas /user:administrator htmlhelp
+        ./htmlhelp.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
       shell: pwsh
 
     - name: Download zlib (Windows)
