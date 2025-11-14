@@ -105,6 +105,12 @@ jobs:
       if: matrix.platform == 'windows'
       uses: ilammy/msvc-dev-cmd@v1
 
+    - name: Download htmlhelp (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        curl -L -o htmlhelp.exe http://web.archive.org/web/20160201063255/http://download.microsoft.com/download/0/A/9/0A939EF6-E31C-430F-A3DF-DFAE7960D564/htmlhelp.exe
+        htmlhelp.exe    
+
     - name: Download zlib (Windows)
       if: matrix.platform == 'windows'
       run: |
