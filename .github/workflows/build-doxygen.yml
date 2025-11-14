@@ -110,8 +110,37 @@ jobs:
       run: |
         curl -L -o htmlhelp.exe http://web.archive.org/web/20160201063255/http://download.microsoft.com/download/0/A/9/0A939EF6-E31C-430F-A3DF-DFAE7960D564/htmlhelp.exe
         ./htmlhelp.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
-        dir C:\Program Files (x86)\HTML Help Workshop        
       shell: pwsh
+
+    - name: Verify hhc.exe is installed
+      if: matrix.platform == 'windows'
+      shell: powershell
+      run: |
+          $possiblePaths = @(
+            "$env:ProgramFiles(x86)\HTML Help Workshop\hhc.exe",
+            "$env:ProgramFiles\HTML Help Workshop\hhc.exe",
+            "$env:ProgramFiles(x86)\HTMLHelpWorkshop\hhc.exe",
+            "$env:ProgramFiles\HTMLHelpWorkshop\hhc.exe"
+          )
+
+          # Find first existing file
+          $installed = $possiblePaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          # Fallback: on PATH
+          if (-not $installed) {
+            $cmd = Get-Command hhc.exe -ErrorAction SilentlyContinue
+            if ($cmd) { $installed = $cmd.Path }
+          }
+
+          if (-not $installed) {
+            Write-Error "hhc.exe not found in known locations or PATH."
+            exit 1
+          }
+
+          Write-Host "hhc.exe found at: $installed"
+          $fi = Get-Item $installed
+          Write-Host "FileVersion: $($fi.VersionInfo.FileVersion)"
+          Write-Host "ProductVersion: $($fi.VersionInfo.ProductVersion)"
 
     - name: Download zlib (Windows)
       if: matrix.platform == 'windows'
