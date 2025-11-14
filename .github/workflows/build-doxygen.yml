@@ -449,8 +449,8 @@ jobs:
               -DZLIB_LIBRARY=${{ github.workspace }}\zlib-1.3.1\zlib.lib ^
               -DZLIB_INCLUDE_DIR=${{ github.workspace }}\zlib-1.3.1\include
         cmake --build . --parallel
-        cmake --build --target docs
-        cmake --build --target docs_chm
+        cmake --build . --target docs
+        cmake --build . --target docs_chm
         cmake --install .
       shell: cmd
 
