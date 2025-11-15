@@ -128,6 +128,31 @@ jobs:
         Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
         refreshenv
 
+    - name: Check tool versions (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        echo "=== perl ===";
+        perl --version;
+        echo "=== python ===";
+        python --version;
+        echo "=== cmake ===";
+        cmake --version;
+        echo "=== latex ===";
+        latex --version;
+        echo "=== bibtex ===";
+        bibtex --version
+        echo "=== dvips ===";
+        dvips --version
+        echo "=== bison ===";
+        win_bison --version;
+        echo "=== flex ===";
+        win_flex --version;
+        echo "=== dot ===";
+        dot -V;
+        echo "=== ghostscript ===";
+        gswin64c --version;
+      shell: bash
+
     - name: Install dependencies (macOS)
       if: matrix.platform == 'macos'
       run: |
