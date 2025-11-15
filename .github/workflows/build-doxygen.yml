@@ -503,11 +503,12 @@ jobs:
     - name: Create installer (Windows)
       if: matrix.platform == 'windows'
       run: |      
+        subst R: ${{ github.workspace }}
         mkdir installer
-        copy ${{ github.workspace }}\llvm-install\bin\libclang.dll ${{ github.workspace }}\doxygen-install\bin
-        editbin ${{ github.workspace }}\doxygen-install\bin\doxygen.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
-        editbin ${{ github.workspace }}\doxygen-install\bin\doxyindexer.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
-        editbin ${{ github.workspace }}\doxygen-install\bin\doxysearch.cgi.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
+        copy R:\llvm-install\bin\libclang.dll ${{ github.workspace }}\doxygen-install\bin
+        editbin R:\doxygen-install\bin\doxygen.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
+        editbin R:\doxygen-install\bin\doxyindexer.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
+        editbin R:\doxygen-install\bin\doxysearch.cgi.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
         Write-Host "Using version: '${{ steps.llvm-version.outputs.version }}'"
         (Get-Content .\doxygen.iss -Raw) -replace '\$VERSION','${{ steps.llvm-version.outputs.version }}' | Set-Content -Encoding ASCII .\doxygen-versioned.iss
         # invoke the inno setup compiler
