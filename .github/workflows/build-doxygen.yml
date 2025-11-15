@@ -510,12 +510,13 @@ jobs:
         editbin ${{ github.workspace }}\doxygen-install\bin\doxysearch.cgi.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
         Write-Host "Using version: '${{ steps.llvm-version.outputs.version }}'"
         (Get-Content .\doxygen.iss -Raw) -replace '\$VERSION','${{ steps.llvm-version.outputs.version }}' | Set-Content -Encoding ASCII .\doxygen-versioned.iss
-        $possible = @(
-          "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
-          "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
-        )
-        $iscc = $possible | Where-Object { Test-Path $_ } | Select-Object -First 1
-        & "$iscc" doxygen-versioned.iss
+        # invoke the inno setup compiler
+        $iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+        if (-not $iscc) {
+          Write-Error "ISCC.exe not found. Checked: $($possible -join '; ') and PATH."
+          exit 1
+        }
+        & iscc 'doxygen-versioned.iss'
         if ($LASTEXITCODE -ne 0) { Write-Error "ISCC failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
         dir installer
       shell: powershell
