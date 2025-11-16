@@ -64,7 +64,7 @@ Source: "r:\doxygen-install\share\doc\packages\doxygen\html\*.css";         Dest
 Source: "r:\doxygen-install\share\doc\packages\doxygen\html\*.js";          DestDir: "{app}\html";          Flags: promptifolder;                Components: docs_html;
 Source: "r:\doxygen-install\share\doc\packages\doxygen\html\search\*";      DestDir: "{app}\html\search";   Flags: promptifolder recursesubdirs; Components: docs_html;
 Source: "r:\doxygen-install\share\doc\packages\doxygen\html\examples\*";    DestDir: "{app}\html\examples"; Flags: promptifolder recursesubdirs; Components: docs_html;
-Source: "r:\doxygen-install\share\doc\packages\*.chm";                      DestDir: "{app}";               Flags: promptifolder;                Components: docs_chm;
+Source: "r:\doxygen-install\share\doc\packages\doxygen\*.chm";              DestDir: "{app}";               Flags: promptifolder;                Components: docs_chm;
 Source: "r:\doxygen\examples\*";                                            DestDir: "{app}\examples";      Flags: promptifolder recursesubdirs; Components: examples;
 Source: "r:\doxygen-install\bin\doxygen.exe";                               DestDir: "{app}\bin";           Flags: promptifolder;                Components: main;
 Source: "r:\doxygen-install\bin\libclang.dll";                              DestDir: "{app}\bin";           Flags: promptifolder;                Components: main;

@@ -473,21 +473,35 @@ jobs:
               -DQt6Widgets_DIR=${{ github.workspace }}\qt6-install\lib\cmake\Qt6Widgets ^
               -DZLIB_LIBRARY=${{ github.workspace }}\zlib-1.3.1\zlib.lib ^
               -DZLIB_INCLUDE_DIR=${{ github.workspace }}\zlib-1.3.1\include
-        cmake --build . --parallel       
+      shell: cmd
+
+    - name: Build Doxygen (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        cd doxygen\build
+        cmake --build . --parallel
+      shell: cmd
+
+    - name: Build Doxygen docs (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        cd doxygen\build
         cmake --build . --parallel 1 --target docs
         cmake --build . --parallel 1 --target docs_chm
-        echo "=== LOG START"
-        type C:\Users\runneradmin\AppData\Local\MiKTeX\miktex\log\epstopdf.log
-        echo "=== LOG END"
+      shell: cmd
+
+    - name: Install Doxygen (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        cd doxygen\build
         cmake --install .
-        
       shell: cmd
 
     - name: Verify Doxygen build (Linux/macOS)
       if: matrix.platform != 'windows'
       run: |
         echo "Checking Doxygen binary..."
-        ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}        
+        ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}
         # Try to run doxygen to verify it works
         ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }} --version || echo "Note: doxygen version check failed (may be expected on some platforms)"
       shell: bash
@@ -498,19 +512,19 @@ jobs:
         echo "Checking Doxygen binary..."
         ls -lh ${{ github.workspace }}\doxygen-install\bin\doxygen${{ matrix.extension }}
         ${{ github.workspace }}\doxygen-install\bin\doxygen${{ matrix.extension }} --version || echo "Note: doxygen version check failed (may be expected on some platforms)"
-      shell: cmd      
+      shell: cmd
 
     - name: Create installer (Windows)
       if: matrix.platform == 'windows'
-      run: |      
+      run: |
         subst R: ${{ github.workspace }}
         mkdir installer
         copy R:\llvm-install\bin\libclang.dll ${{ github.workspace }}\doxygen-install\bin
         editbin R:\doxygen-install\bin\doxygen.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
         editbin R:\doxygen-install\bin\doxyindexer.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
         editbin R:\doxygen-install\bin\doxysearch.cgi.exe /SUBSYSTEM:CONSOLE,6.00 /OSVERSION:5.1
-        Write-Host "Using version: '${{ steps.llvm-version.outputs.version }}'"
-        (Get-Content .\doxygen.iss -Raw) -replace '\$VERSION','${{ steps.llvm-version.outputs.version }}' | Set-Content -Encoding ASCII .\doxygen-versioned.iss
+        Write-Host "Using version: '${{ steps.doxygen-version.outputs.version }}'"
+        (Get-Content .\doxygen.iss -Raw) -replace '\$VERSION','${{ steps.doxygen-version.outputs.version }}' | Set-Content -Encoding ASCII .\doxygen-versioned.iss
         # invoke the inno setup compiler
         $iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
         if (-not $iscc) {
@@ -519,20 +533,21 @@ jobs:
         }
         & iscc 'doxygen-versioned.iss'
         if ($LASTEXITCODE -ne 0) { Write-Error "ISCC failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
+        Compress-Archive -Path 'doxygen-install\share\doc\packages\doxygen\doxygen_manual.chm' -DestinationPath 'doxygen_manual-${{ steps.doxygen-version.outputs.version }}.chm.zip' -Force
         dir installer
       shell: powershell
-      
+
     - name: Create build artifact (Linux/macOS)
       if: matrix.platform != 'windows'
       run: |
         cd ${{ github.workspace }}
         tar -czf doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}.tar.gz -C doxygen-install .
       shell: bash
-      
+
     - name: Create build artifact (Windows)
       if: matrix.platform == 'windows'
       run: |
-        Compress-Archive -Path 'doxygen-install\\*' -DestinationPath 'doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}.zip' -Force
+        Compress-Archive -Path 'installer\\*' -DestinationPath 'doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}.zip' -Force
       shell: pwsh
       
     - name: Upload Doxygen build
