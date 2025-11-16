@@ -13,40 +13,40 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          #- os: ubuntu-24.04
-          #  platform: linux
-          #  extension: ""
-          #  archive_format: tar.gz
-          #  cmake_args: >-
-          #    -DLLVM_ENABLE_PIC=OFF
-          #    -DLLVM_ENABLE_TERMINFO=OFF
-          #    -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
+          - os: ubuntu-24.04
+            platform: linux
+            extension: ""
+            archive_format: tar.gz
+            cmake_args: >-
+              -DLLVM_ENABLE_PIC=OFF
+              -DLLVM_ENABLE_TERMINFO=OFF
+              -DLLVM_TARGETS_TO_BUILD="X86;AArch64"
           - os: windows-latest
             platform: windows
             extension: .exe
             archive_format: zip
-          #- os: macos-15
-          #  platform: macos
-          #  extension: ""
-          #  archive_format: tar.gz
-          #  cmake_args: >-
-          #    -DLLVM_ENABLE_PIC=OFF
-          #    -DLLVM_TARGETS_TO_BUILD="ARM"
-          #    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
-          #- os: macos-15-intel
-          #  platform: macos
-          #  extension: ""
-          #  archive_format: tar.gz
-          #  cmake_args: >-
-          #    -DLLVM_ENABLE_PIC=OFF
-          #    -DLLVM_TARGETS_TO_BUILD="AArch64"
-          #    -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+          - os: macos-15
+            platform: macos
+            extension: ""
+            archive_format: tar.gz
+            cmake_args: >-
+              -DLLVM_ENABLE_PIC=OFF
+              -DLLVM_TARGETS_TO_BUILD="ARM"
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+          - os: macos-15-intel
+            platform: macos
+            extension: ""
+            archive_format: tar.gz
+            cmake_args: >-
+              -DLLVM_ENABLE_PIC=OFF
+              -DLLVM_TARGETS_TO_BUILD="AArch64"
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
     runs-on: ${{ matrix.os }}
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Install dependencies (Linux)
       if: matrix.platform == 'linux'
       run: |
@@ -114,7 +114,6 @@ jobs:
         VERSION=${LATEST_TAG#llvmorg-}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
       shell: bash
-      
 
     - name: Cache LLVM source
       id: cache-llvm-source
@@ -168,11 +167,13 @@ jobs:
           ${{ matrix.cmake_args }}
           cmake --build . --parallel
           cmake --install .
+          # remove large files we do not needed to reduce cache size
+          rm -rf ${{ github.workspace }}/llvm-install/bin
       shell: bash
 
     - name: Set up MSVC dev command prompt (Windows)
       if: matrix.platform == 'windows'
-      uses: ilammy/msvc-dev-cmd@v1         
+      uses: ilammy/msvc-dev-cmd@v1
 
     - name: Configure CMake for LLVM (Windows)
       if: matrix.platform == 'windows'
@@ -206,6 +207,8 @@ jobs:
           -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
         cmake --build . --parallel
         cmake --install .
+        @rem remove large files we do not need to reduce cache size
+        del /q ${{ github.workspace }}\llvm-install\bin\*.exe
       shell: cmd
 
     - name: Verify static build
@@ -226,13 +229,13 @@ jobs:
         cd ${{ github.workspace }}
         tar -czf llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.os }}.tar.gz -C llvm-install .
       shell: bash
-      
+
     - name: Create build artifact (Windows)
       if: matrix.platform == 'windows'
       run: |
         Compress-Archive -Path 'llvm-install\\*' -DestinationPath 'llvm-static-${{ steps.llvm-version.outputs.version }}-${{ matrix.os }}.zip' -Force
       shell: pwsh
-      
+
     - name: Upload LLVM static build
       uses: actions/upload-artifact@v4
       with:

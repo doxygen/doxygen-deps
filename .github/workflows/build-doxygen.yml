@@ -32,11 +32,11 @@ jobs:
             extension: ""
             archive_format: tar.gz
     runs-on: ${{ matrix.os }}
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Install dependencies (Linux)
       if: matrix.platform == 'linux'
       run: |
@@ -533,7 +533,10 @@ jobs:
         }
         & iscc 'doxygen-versioned.iss'
         if ($LASTEXITCODE -ne 0) { Write-Error "ISCC failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
-        Compress-Archive -Path 'doxygen-install\share\doc\packages\doxygen\doxygen_manual.chm' -DestinationPath 'installer\doxygen_manual-${{ steps.doxygen-version.outputs.version }}.chm.zip' -Force
+        $doxygen_chm_files = @(
+          'R:\doxygen-install\share\doc\packages\doxygen\doxygen_manual.chm'
+        )
+        Compress-Archive -Path $doxygen_chm_files -DestinationPath 'R:\installer\doxygen_manual-${{ steps.doxygen-version.outputs.version }}.chm.zip' -Force
         $doxygen_zip_files = @(
           'R:\doxygen-install\bin\doxysearch.cgi.exe',
           'R:\doxygen-install\bin\doxyindexer.exe',
