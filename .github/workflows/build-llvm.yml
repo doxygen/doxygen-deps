@@ -165,7 +165,7 @@ jobs:
           -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
           -DLLVM_PARALLEL_LINK_JOBS=1 \
           ${{ matrix.cmake_args }}
-          cmake --build . --parallel
+          cmake --build .
           cmake --install .
           # remove large files we do not needed to reduce cache size
           rm -rf ${{ github.workspace }}/llvm-install/bin
@@ -205,7 +205,7 @@ jobs:
           -DLLVM_USE_CRT_RELEASE=MT ^
           -DLLVM_TARGETS_TO_BUILD="X86;AArch64" ^
           -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-        cmake --build . --parallel
+        cmake --build .
         cmake --install .
         @rem remove large files we do not need to reduce cache size
         del /q ${{ github.workspace }}\llvm-install\bin\*.exe
