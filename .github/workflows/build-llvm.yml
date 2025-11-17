@@ -165,7 +165,7 @@ jobs:
           -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
           -DLLVM_PARALLEL_LINK_JOBS=1 \
           ${{ matrix.cmake_args }}
-          cmake --build .
+          cmake --build . --parallel 2
           cmake --install .
           # remove large files we do not needed to reduce cache size
           rm -rf ${{ github.workspace }}/llvm-install/bin
