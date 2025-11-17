@@ -279,16 +279,13 @@ jobs:
       shell: bash
 
     - name: Download LLVM artifacts
-      uses: dawidd6/action-download-artifact@v6
+      uses: dawidd6/action-download-artifact@v11
       with:
         workflow: build-llvm.yml
         name: llvm-static-.*-${{ matrix.os }}
         name_is_regexp: true
         path: llvm-artifact
         skip_unpack: false
-        workflow_search: true
-        workflow_conclusion: any
-        search_artifacts: true
 
     - name: Extract LLVM version from artifact
       id: llvm-version
@@ -301,16 +298,13 @@ jobs:
       shell: bash
 
     - name: Download Qt6 artifacts
-      uses: dawidd6/action-download-artifact@v6
+      uses: dawidd6/action-download-artifact@v11
       with:
         workflow: build-qt6.yml
         name: qt6-static-.*-${{ matrix.os }}
         name_is_regexp: true
         path: qt6-artifact
         skip_unpack: false
-        workflow_search: true
-        workflow_conclusion: any
-        search_artifacts: true
 
     - name: Extract Qt6 version from artifact
       id: qt6-version
@@ -323,16 +317,13 @@ jobs:
       shell: bash
 
     - name: Download Xapian artifacts
-      uses: dawidd6/action-download-artifact@v6
+      uses: dawidd6/action-download-artifact@v11
       with:
         workflow: build-xapian.yml
         name: xapian-static-.*-${{ matrix.os }}
         name_is_regexp: true
         path: xapian-artifact
         skip_unpack: false
-        workflow_search: true
-        workflow_conclusion: any
-        search_artifacts: true
 
     - name: Extract Xapian version from artifact
       id: xapian-version
