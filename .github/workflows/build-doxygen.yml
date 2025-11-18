@@ -555,8 +555,8 @@ jobs:
         Compress-Archive -Path $doxygen_zip_files -DestinationPath 'R:\installer\doxygen-${{ steps.doxygen-version.outputs.version }}.x64.bin.zip' -Force
       shell: powershell
 
-    - name: Create installer (Windows)
-      if: matrix.platform == 'windows'
+    - name: Create installer (macOS)
+      if: matrix.platform == 'macos'
       run: |
         mkdir installer
 
