@@ -459,7 +459,6 @@ jobs:
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
         echo "=== done ==="
         make -j$(sysctl -n hw.logicalcpu)
-        make install
       shell: bash      
 
     - name: Configure CMake for Doxygen (Windows)
