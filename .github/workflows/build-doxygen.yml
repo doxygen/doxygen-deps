@@ -82,7 +82,14 @@ jobs:
           libxkbcommon-x11-dev \
           libgl1-mesa-dev \
           libglu1-mesa-dev \
-          uuid-dev
+          uuid-dev \
+          texlive \
+          texlive-latex-recommended \
+          texlive-extra-utils \
+          texlive-latex-extra \
+          texlive-font-utils \
+          ghostscript \
+          graphviz
       shell: bash
 
     - name: Install dependencies (Windows)
@@ -419,6 +426,7 @@ jobs:
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
         echo "=== done ==="
         make -j$(nproc)
+        make docs
         make install
       shell: bash
 
@@ -547,23 +555,71 @@ jobs:
         Compress-Archive -Path $doxygen_zip_files -DestinationPath 'R:\installer\doxygen-${{ steps.doxygen-version.outputs.version }}.x64.bin.zip' -Force
       shell: powershell
 
-    - name: Create build artifact (Linux/macOS)
-      if: matrix.platform != 'windows'
+    - name: Create installer (Windows)
+      if: matrix.platform == 'windows'
       run: |
-        cd ${{ github.workspace }}
-        tar -czf doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}.tar.gz -C doxygen-install .
+        mkdir installer
+
+        # create DMG file
+        mkdir image
+        bunzip2 -k macosx/template.sparseimage.bz2
+        hdiutil attach macosx/template.sparseimage -noautoopen -quite -mountpoint image
+        cp -a macosx/Doxygen.app image
+        cp -a macosx/Readme.rtf image
+        mkdir -p image/Doxygen.app/Contents/MacOS
+        sed -i -e "s/\$VERSION/${{ steps.doxygen-version.outputs.version }}/g" image/Doxygen.app/Contents/Info.plist
+        cp doxygen/build/bin/doxygen        image/Doxygen.app/Contents/Resources
+        cp doxygen/build/bin/doxyindex      image/Doxygen.app/Contents/Resources
+        cp doxygen/build/bin/doxysearch.cgi image/Doxygen.app/Contents/Resources
+        cp doxygen/build/bin/doxywizard     image/Doxygen.app/Contents/MacOS/Doxywizard
+        /usr/sbin/diskutil rename image Doxygen
+        hdiutil detach image
+        hdituil convert -format UDCO -o installer/Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg macosx/template.sparseimage
+
       shell: bash
 
-    - name: Upload Doxygen build (Linux/macOS)
-      if: matrix.platform != 'windows'
-      uses: actions/upload-artifact@v4
-      with:
-        name: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}
-        path: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}.${{ matrix.archive_format }}
-        retention-days: 30
+    - name: Create installer (Linux)
+      if: matrix.platform == 'linux'
+      run: |
+        VERSION=${{ steps.doxygen-version.outputs.version }}
 
-    - name: Upload Doxygen build (Windows)
-      if: matrix.platform == 'windows'
+        # create installer dir
+        mkdir installer
+
+        # create source package
+        tar -C doxygen --exclude bin -c -v -f - \
+          doc doc_internal deps vhdlparser libxml libversion examples addon src testing templates cmake \
+          CMakeLists.txt BUILD.txt INSTALL LANGUAGE.HOWTO LICENSE \
+          README.md | ( cd installer/doxygen-$VERSION; tar xpf -)
+
+        # create PDF version of the manual
+        cp doxygen/latex/doxygen_manual.pdf installer/doxygen_manual-$VERSION.pdf
+        cd installer
+        zip -m doxygen_manual-$VERSION.pdf.zip doxygen_manual-$VERSION.pdf
+        cd ..
+
+        # create binary package for Linux
+        DESTDIR=package/doxygen-$VERSION
+        mkdir -p $DESTDIR
+        cat linux/README.bin | sed -e "s/\$VERSION/$VERSION/g" -e "s/\$DATE/`date +\"%d %B %Y\"`/g" >$DESTDIR/README
+        cp doxygen/LICENSE $DESTDIR
+        cp linux/Makefile.bin.in $DESTDIR/Makefile
+        cat doxygen/INSTALL | sed -e "s/\$VERSION/$VERSION/g" -e "s/\$DATE/`date +\"%d %B %Y\"`/g" >$DESTDIR/INSTALL
+        mkdir $DESTDIR/bin
+        mkdir -p $DESTDIR/man/man1
+        cp -a doxygen/html $DESTDIR
+        cp -a doxygen/examples $DESTDIR
+        cp doxygen/bin/doxygen $DESTDIR/bin
+        cp doxygen/latex/doxygen_manual.pdf $DESTDIR/doxygen_manual-$VERSION.pdf
+        cp doxygen/bin/doxyindexer $DESTDIR/bin
+        cp doxygen/bin/doxysearch.cgi $DESTDIR/bin
+        cp doxygen/bin/doxywizard $DESTDIR/bin
+        cp doxygen/man/*.1 $DESTDIR/man/man1
+        gzip $DESTDIR/man/man1/*
+        tar -C package -z -c -v -f installer/doxygen-$VERSION.linux.bin.tar.gz doxygen-$VERSION
+      shell: bash
+
+    - name: Upload Doxygen build (Windows/macOS)
       uses: actions/upload-artifact@v4
       with:
         name: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}
