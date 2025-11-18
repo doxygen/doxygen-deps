@@ -167,8 +167,6 @@ jobs:
           ${{ matrix.cmake_args }}
           cmake --build . --parallel 2
           cmake --install .
-          # remove large files we do not needed to reduce cache size
-          rm -rf ${{ github.workspace }}/llvm-install/bin
       shell: bash
 
     - name: Set up MSVC dev command prompt (Windows)
@@ -205,10 +203,8 @@ jobs:
           -DLLVM_USE_CRT_RELEASE=MT ^
           -DLLVM_TARGETS_TO_BUILD="X86;AArch64" ^
           -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-        cmake --build .
+        cmake --build . --parallel 2
         cmake --install .
-        @rem remove large files we do not need to reduce cache size
-        del /q ${{ github.workspace }}\llvm-install\bin\*.exe
       shell: cmd
 
     - name: Verify static build
