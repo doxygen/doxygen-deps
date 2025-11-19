@@ -574,7 +574,7 @@ jobs:
         cp doxygen/build/bin/doxywizard     image/Doxygen.app/Contents/MacOS/Doxywizard
         /usr/sbin/diskutil rename image Doxygen
         hdiutil detach image
-        hdituil convert -format UDCO -o installer/Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg macosx/template.sparseimage
+        hdiutil convert -format UDCO -o installer/Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg macosx/template.sparseimage
 
       shell: bash
 
