@@ -563,7 +563,7 @@ jobs:
         # create DMG file
         mkdir image
         bunzip2 -k macosx/template.sparseimage.bz2
-        hdiutil attach macosx/template.sparseimage -noautoopen -quite -mountpoint image
+        hdiutil attach macosx/template.sparseimage -noautoopen -quiet -mountpoint image
         cp -a macosx/Doxygen.app image
         cp -a macosx/Readme.rtf image
         mkdir -p image/Doxygen.app/Contents/MacOS
@@ -593,7 +593,7 @@ jobs:
           README.md | ( cd installer/doxygen-$VERSION; tar xpf -)
 
         # create PDF version of the manual
-        cp doxygen/latex/doxygen_manual.pdf installer/doxygen_manual-$VERSION.pdf
+        cp doxygen/build/latex/doxygen_manual.pdf installer/doxygen_manual-$VERSION.pdf
         cd installer
         zip -m doxygen_manual-$VERSION.pdf.zip doxygen_manual-$VERSION.pdf
         cd ..
@@ -609,12 +609,12 @@ jobs:
         mkdir -p $DESTDIR/man/man1
         cp -a doxygen/html $DESTDIR
         cp -a doxygen/examples $DESTDIR
-        cp doxygen/bin/doxygen $DESTDIR/bin
-        cp doxygen/latex/doxygen_manual.pdf $DESTDIR/doxygen_manual-$VERSION.pdf
-        cp doxygen/bin/doxyindexer $DESTDIR/bin
-        cp doxygen/bin/doxysearch.cgi $DESTDIR/bin
-        cp doxygen/bin/doxywizard $DESTDIR/bin
-        cp doxygen/man/*.1 $DESTDIR/man/man1
+        cp doxygen/build/bin/doxygen $DESTDIR/bin
+        cp doxygen/build/latex/doxygen_manual.pdf $DESTDIR/doxygen_manual-$VERSION.pdf
+        cp doxygen/build/bin/doxyindexer $DESTDIR/bin
+        cp doxygen/build/bin/doxysearch.cgi $DESTDIR/bin
+        cp doxygen/build/bin/doxywizard $DESTDIR/bin
+        cp doxygen/build/man/*.1 $DESTDIR/man/man1
         gzip $DESTDIR/man/man1/*
         tar -C package -z -c -v -f installer/doxygen-$VERSION.linux.bin.tar.gz doxygen-$VERSION
       shell: bash
