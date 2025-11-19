@@ -569,7 +569,7 @@ jobs:
         mkdir -p image/Doxygen.app/Contents/MacOS
         sed -i -e "s/\$VERSION/${{ steps.doxygen-version.outputs.version }}/g" image/Doxygen.app/Contents/Info.plist
         cp doxygen/build/bin/doxygen        image/Doxygen.app/Contents/Resources
-        cp doxygen/build/bin/doxyindex      image/Doxygen.app/Contents/Resources
+        cp doxygen/build/bin/doxyindexer    image/Doxygen.app/Contents/Resources
         cp doxygen/build/bin/doxysearch.cgi image/Doxygen.app/Contents/Resources
         cp doxygen/build/bin/doxywizard     image/Doxygen.app/Contents/MacOS/Doxywizard
         /usr/sbin/diskutil rename image Doxygen
@@ -607,8 +607,8 @@ jobs:
         cat doxygen/INSTALL | sed -e "s/\$VERSION/$VERSION/g" -e "s/\$DATE/`date +\"%d %B %Y\"`/g" >$DESTDIR/INSTALL
         mkdir $DESTDIR/bin
         mkdir -p $DESTDIR/man/man1
-        cp -a doxygen/html $DESTDIR
-        cp -a doxygen/examples $DESTDIR
+        cp -a doxygen/build/html $DESTDIR
+        cp -a doxygen/build/examples $DESTDIR
         cp doxygen/build/bin/doxygen $DESTDIR/bin
         cp doxygen/build/latex/doxygen_manual.pdf $DESTDIR/doxygen_manual-$VERSION.pdf
         cp doxygen/build/bin/doxyindexer $DESTDIR/bin
