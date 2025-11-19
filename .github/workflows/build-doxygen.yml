@@ -584,13 +584,12 @@ jobs:
         VERSION=${{ steps.doxygen-version.outputs.version }}
 
         # create installer dir
-        mkdir -p installer/doxygen-$VERSION
+        mkdir -p installer
 
         # create source package
-        tar -C doxygen --exclude bin -c -v -f - \
+        tar -C doxygen --exclude bin -c -v -f installer/doxygen-$VERSION.src.tar.gz \
           doc doc_internal deps vhdlparser libxml libversion examples addon src testing templates cmake \
-          CMakeLists.txt BUILD.txt INSTALL LANGUAGE.HOWTO LICENSE \
-          README.md | ( cd installer/doxygen-$VERSION; tar xpf -)
+          CMakeLists.txt BUILD.txt INSTALL LANGUAGE.HOWTO LICENSE README.md
 
         # create PDF version of the manual
         cp doxygen/build/latex/doxygen_manual.pdf installer/doxygen_manual-$VERSION.pdf
