@@ -505,8 +505,8 @@ jobs:
         cmake --install .
       shell: cmd
 
-    - name: Verify Doxygen build (Linux/macOS)
-      if: matrix.platform != 'windows'
+    - name: Verify Doxygen build (Linux)
+      if: matrix.platform == 'linux'
       run: |
         echo "Checking Doxygen binary..."
         ls -lh ${{ github.workspace }}/doxygen-install/bin/doxygen${{ matrix.extension }}
@@ -584,7 +584,7 @@ jobs:
         VERSION=${{ steps.doxygen-version.outputs.version }}
 
         # create installer dir
-        mkdir installer
+        mkdir -p installer/doxygen-$VERSION
 
         # create source package
         tar -C doxygen --exclude bin -c -v -f - \
