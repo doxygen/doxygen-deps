@@ -425,7 +425,12 @@ jobs:
           -Dstatic_libxapian=YES \
           -Dforce_qt=Qt6 \
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
-        echo "=== done ==="
+      shell: bash
+
+    - name: Build Doxygen (Linux)
+      if: matrix.platform == 'linux'
+      run: |
+        cd doxygen/build
         make -j$(nproc)
         make docs
         make install
@@ -457,9 +462,14 @@ jobs:
           -Dstatic_libxapian=YES \
           -Dforce_qt=Qt6 \
           -DCMAKE_PREFIX_PATH="${{ github.workspace }}/llvm-install;${{ github.workspace }}/qt6-install;${{ github.workspace }}/xapian-install"
-        echo "=== done ==="
-        make -j$(sysctl -n hw.logicalcpu)
-      shell: bash      
+      shell: bash
+
+    - name: Build Doxygen (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        cd doxygen/build
+        cmake --build . --parallel
+      shell: bash
 
     - name: Configure CMake for Doxygen (Windows)
       if: matrix.platform == 'windows'
@@ -575,6 +585,7 @@ jobs:
         /usr/sbin/diskutil rename image Doxygen
         hdiutil detach image
         hdiutil convert -format UDCO -o installer/Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg macosx/template.sparseimage
+        xattr -c installer/Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg
 
       shell: bash
 
@@ -618,12 +629,54 @@ jobs:
         tar -C package -z -c -v -f installer/doxygen-$VERSION.linux.bin.tar.gz doxygen-$VERSION
       shell: bash
 
-    - name: Upload Doxygen build (Windows/macOS)
+    - name: Upload Doxygen build (Windows/setup.exe)
+      if: matrix.platform == 'windows'
       uses: actions/upload-artifact@v4
       with:
-        name: doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.os }}
-        path: installer
-        retention-days: 30
+        name: doxygen-${{ steps.doxygen-version.outputs.version }}-setup.exe
+        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}-setup.exe
+
+    - name: Upload Doxygen build (Windows/doxygen-x64.zip)
+      if: matrix.platform == 'windows'
+      uses: actions/upload-artifact@v4
+      with:
+        name: doxygen-${{ steps.doxygen-version.outputs.version }}-x64.bin.zip
+        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}-x64.bin.zip
+
+    - name: Upload Doxygen build (Windows/doxygen_manual.chm)
+      if: matrix.platform == 'windows'
+      uses: actions/upload-artifact@v4
+      with:
+        name: doxygen_manual-${{ steps.doxygen-version.outputs.version }}.chm.zip
+        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}.chm.zip
+
+    - name: Upload Doxygen build (macOS/doxygen.dmg)
+      if: matrix.platform == 'macos'
+      uses: actions/upload-artifact@v4
+      with:
+        name: Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg
+        path: installer/Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg
+
+    - name: Upload Doxygen build (Linux/doxygen.src.tar.gz)
+      if: matrix.platform == 'linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: doxygen-${{ steps.doxygen-version.outputs.version }}.src.tar.gz
+        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}.src.tar.gz
+
+    - name: Upload Doxygen build (Linux/doxygen.linux.bin.tar.gz)
+      if: matrix.platform == 'linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: doxygen-${{ steps.doxygen-version.outputs.version }}.linux.bin.tar.gz
+        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}.linux.tar.gz
+
+    - name: Upload Doxygen build (Linux/doxygen_manual.pdf.zip)
+      if: matrix.platform == 'linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: doxygen_manual-${{ steps.doxygen-version.outputs.version }}.pdf.zip
+        path: installer/doxygen_manual-${{ steps.doxygen-version.outputs.version }}.pdf.zip
 
     - name: Display build summary
       run: |
