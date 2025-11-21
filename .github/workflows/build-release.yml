@@ -1,7 +1,7 @@
-name: Build Doxygen
-
 on:
   workflow_dispatch:
+
+name: Create Doxygen Release
 
 permissions:
   contents: read
