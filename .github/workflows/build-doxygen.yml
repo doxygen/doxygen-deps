@@ -652,7 +652,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: doxygen_manual-${{ steps.doxygen-version.outputs.version }}.chm.zip
-        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}.chm.zip
+        path: installer/doxygen_manual-${{ steps.doxygen-version.outputs.version }}.chm.zip
 
     - name: Upload Doxygen build (macOS/doxygen.dmg)
       if: matrix.platform == 'macos'
@@ -673,7 +673,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: doxygen-${{ steps.doxygen-version.outputs.version }}.linux.bin.tar.gz
-        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}.linux.tar.gz
+        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}.linux.bin.tar.gz
 
     - name: Upload Doxygen build (Linux/doxygen_manual.pdf.zip)
       if: matrix.platform == 'linux'
