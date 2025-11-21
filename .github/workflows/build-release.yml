@@ -11,9 +11,9 @@ env:
 
 jobs:
   # anchor job that defines the matrix but never runs
-  _os-matrix: &os-matrix
+  _matrix_anchor:
     if: false
-    strategy:
+    strategy: &os_strategy
       fail-fast: false
       matrix:
         include:
@@ -43,9 +43,9 @@ jobs:
 #===============================================================
 
   build-doxygen:
-    <<: *os-matrix
     name: Doxygen (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    strategy: *os_strategy
 
     steps:
     - name: Checkout repository
