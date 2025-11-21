@@ -1,14 +1,5 @@
 name: Build Doxygen
 
-on:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-env:
-  BUILD_TYPE: Release
-
 x-os-matrix: &os-matrix
   strategy:
     fail-fast: false
@@ -34,6 +25,15 @@ x-os-matrix: &os-matrix
           platform: macos
           extension: ""
           archive_format: tar.gz
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BUILD_TYPE: Release
 
 jobs:
 #===============================================================
