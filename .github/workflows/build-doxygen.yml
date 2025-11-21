@@ -468,7 +468,7 @@ jobs:
       if: matrix.platform == 'macos'
       run: |
         cd doxygen/build
-        cmake --build . --parallel
+        cmake --build . --parallel 2
       shell: bash
 
     - name: Configure CMake for Doxygen (Windows)
