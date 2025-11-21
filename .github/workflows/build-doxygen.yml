@@ -16,18 +16,22 @@ jobs:
       matrix:
         include:
           - os: ubuntu-24.04
+            cpu: intel
             platform: linux
             extension: ""
             archive_format: tar.gz
           - os: windows-latest
+            cpu: intel
             platform: windows
             extension: .exe
             archive_format: zip
           - os: macos-15
+            cpu: arm
             platform: macos
             extension: ""
             archive_format: tar.gz
           - os: macos-15-intel
+            cpu: intel
             platform: macos
             extension: ""
             archive_format: tar.gz
@@ -584,8 +588,8 @@ jobs:
         cp doxygen/build/bin/doxywizard     image/Doxygen.app/Contents/MacOS/Doxywizard
         /usr/sbin/diskutil rename image Doxygen
         hdiutil detach image
-        hdiutil convert -format UDCO -o installer/Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg macosx/template.sparseimage
-        xattr -c installer/Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg
+        hdiutil convert -format UDCO -o installer/Doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.cpu }}.dmg macosx/template.sparseimage
+        xattr -c installer/Doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.cpu }}.dmg
 
       shell: bash
 
@@ -654,8 +658,8 @@ jobs:
       if: matrix.platform == 'macos'
       uses: actions/upload-artifact@v4
       with:
-        name: Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg
-        path: installer/Doxygen-${{ steps.doxygen-version.outputs.version }}.dmg
+        name: Doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.cpu }}.dmg
+        path: installer/Doxygen-${{ steps.doxygen-version.outputs.version }}-${{ matrix.cpu }}.dmg
 
     - name: Upload Doxygen build (Linux/doxygen.src.tar.gz)
       if: matrix.platform == 'linux'
