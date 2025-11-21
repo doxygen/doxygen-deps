@@ -1,31 +1,5 @@
 name: Build Doxygen
 
-x-os-matrix: &os-matrix
-  strategy:
-    fail-fast: false
-    matrix:
-      include:
-        - os: ubuntu-24.04
-          cpu: intel
-          platform: linux
-          extension: ""
-          archive_format: tar.gz
-        - os: windows-latest
-          cpu: intel
-          platform: windows
-          extension: .exe
-          archive_format: zip
-        - os: macos-15
-          cpu: arm
-          platform: macos
-          extension: ""
-          archive_format: tar.gz
-        - os: macos-15-intel
-          cpu: intel
-          platform: macos
-          extension: ""
-          archive_format: tar.gz
-
 on:
   workflow_dispatch:
 
@@ -36,6 +10,34 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  # anchor job that defines the matrix but never runs
+  _os-matrix: &os-matrix
+    if: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            cpu: intel
+            platform: linux
+            extension: ""
+            archive_format: tar.gz
+          - os: windows-latest
+            cpu: intel
+            platform: windows
+            extension: .exe
+            archive_format: zip
+          - os: macos-15
+            cpu: arm
+            platform: macos
+            extension: ""
+            archive_format: tar.gz
+          - os: macos-15-intel
+            cpu: intel
+            platform: macos
+            extension: ""
+            archive_format: tar.gz
+
 #===============================================================
 # DOXYGEN JOB
 #===============================================================
