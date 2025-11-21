@@ -10,10 +10,15 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  # anchor job that defines the matrix but never runs
-  _matrix_anchor:
-    if: false
-    strategy: &os_strategy
+
+#===============================================================
+# DOXYGEN JOB
+#===============================================================
+
+  build-doxygen:
+    name: Doxygen (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
       fail-fast: false
       matrix:
         include:
@@ -36,16 +41,7 @@ jobs:
             cpu: intel
             platform: macos
             extension: ""
-            archive_format: tar.gz
-
-#===============================================================
-# DOXYGEN JOB
-#===============================================================
-
-  build-doxygen:
-    name: Doxygen (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy: *os_strategy
+            archive_format: tar.gz    
 
     steps:
     - name: Checkout repository
