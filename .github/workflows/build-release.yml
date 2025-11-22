@@ -1390,8 +1390,8 @@ jobs:
       if: matrix.platform == 'windows'
       uses: actions/upload-artifact@v4
       with:
-        name: doxygen-${{ steps.doxygen-version.outputs.version }}-x64.bin.zip
-        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}-x64.bin.zip
+        name: doxygen-${{ steps.doxygen-version.outputs.version }}.x64.bin.zip
+        path: installer/doxygen-${{ steps.doxygen-version.outputs.version }}.x64.bin.zip
 
     - name: Upload Doxygen build (Windows/doxygen_manual.chm)
       if: matrix.platform == 'windows'
