@@ -260,7 +260,7 @@ jobs:
 #===============================================================
 
   build-xapian:
-    name: LLVM (${{ matrix.os }})
+    name: Xapian (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -495,7 +495,7 @@ jobs:
 #===============================================================
 
   build-qt6:
-    name: LLVM (${{ matrix.os }})
+    name: Qt6 (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
